@@ -1,8 +1,7 @@
-package com.example.messenger.ui.screens.chat
+package com.example.messenger.ui.screens.main.chat
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import kotlinx.serialization.Serializable
 
 class ChatViewModel: ViewModel() {
 

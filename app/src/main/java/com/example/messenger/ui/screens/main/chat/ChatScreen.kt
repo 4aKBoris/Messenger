@@ -39,7 +39,7 @@ import com.example.messenger.Fun
 import com.example.messenger.R
 import com.example.messenger.StrFun
 import com.example.messenger.messages.Message
-import com.example.messenger.ui.screens.chat.ChatViewModel
+import com.example.messenger.ui.screens.main.chat.ChatViewModel
 import com.example.messenger.ui.theme.*
 
 @Composable

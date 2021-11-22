@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import com.example.messenger.R
+import com.example.messenger.navigation.screens.AuthorizationScreens
+import com.example.messenger.navigation.screens.RegistrationScreens
 import com.example.messenger.ui.theme.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
@@ -40,7 +42,7 @@ fun WelcomeScreen(navController: NavController) {
         )
 
         IconButton(
-            onClick = { navController.navigate(Screen.AuthenticationScreen.Register.route) },
+            onClick = { navController.navigate(RegistrationScreens.Register.route) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -63,7 +65,7 @@ fun WelcomeScreen(navController: NavController) {
         })
 
         IconButton(
-            onClick = { navController.navigate(Screen.AuthenticationScreen.Login.route) },
+            onClick = { navController.navigate(AuthorizationScreens.Login.route) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)

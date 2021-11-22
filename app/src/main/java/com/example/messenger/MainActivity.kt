@@ -1,4 +1,4 @@
-@file:Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
+@file:Suppress("EXPERIMENTAL_IS_NOT_ENABLED", "DEPRECATION")
 
 package com.example.messenger
 
@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,41 +26,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.messenger.ui.screens.Screen
-import com.example.messenger.ui.screens.WelcomeScreen
-import com.example.messenger.ui.screens.authentication.*
+import com.example.messenger.navigation.Navigation
 import com.example.messenger.ui.theme.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import io.ktor.client.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
-import io.ktor.client.features.logging.*
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+
 
 const val LOG_TAG = "LOG_TAG"
 
 class MainActivity : ComponentActivity() {
 
-    private val commonViewModel: CommonViewModel by viewModels()
-
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val client: HttpClient = HttpClient(Android) {
-            install(Logging) {
-                level = LogLevel.ALL
-            }
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
-        }
 
         setContent {
             MessengerTheme {
@@ -69,40 +48,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-
-                    //OtherMessages()
-                    //ChatScreen(viewModel = viewModel)
-                    val navController = rememberNavController()
-                    NavHost(navController, startDestination = Screen.Welcome.route) {
-                        composable(route = Screen.Welcome.route) {
-                            WelcomeScreen(navController = navController)
-                        }
-                        composable(route = Screen.AuthenticationScreen.Login.route) {
-                            LoginScreen(navController = navController, viewModel = commonViewModel)
-                        }
-                        composable(route = Screen.AuthenticationScreen.Register.route) {
-                            RegisterScreen(
-                                navController = navController,
-                                viewModel = commonViewModel
-                            )
-                        }
-                        composable(route = Screen.EnterPassword.route) { backStackEntry ->
-                            //val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")
-                            //requireNotNull(phoneNumber) { "phoneNumber parameter wasn't found. Please make sure it's set!" }
-                            EnterPasswordScreen(
-                                navController = navController,
-                                phoneNumber = "phoneNumber"
-                            )
-                        }
-                        composable(route = Screen.UserInfo.route) { backStackEntry ->
-                            val phoneNumber = backStackEntry.arguments?.getString("phoneNumber")
-                            requireNotNull(phoneNumber) { "phoneNumber parameter wasn't found. Please make sure it's set!" }
-                            UserInfo(
-                                navController = navController,
-                                phoneNumber = phoneNumber
-                            )
-                        }
-                    }
+                    Navigation(activity = this)
                 }
             }
         }
