@@ -24,8 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.sp
-import com.example.messenger.BoolFun
-import com.example.messenger.CompFun
+import com.example.messenger.`typealias`.BoolFun
+import com.example.messenger.`typealias`.CompFun
 import com.example.messenger.ui.theme.DarkGreen
 import com.example.messenger.ui.theme.LightGray
 import com.example.messenger.ui.theme.Red
@@ -109,6 +109,9 @@ sealed class TextFieldType @OptIn(ExperimentalComposeUiApi::class) constructor(
                     contentDescription = "Номер телефона"
                 )
             }
+
+        override val keyboardType: KeyboardType
+            get() = KeyboardType.Number
 
         override val visualTransformation: VisualTransformation
             get() = VisualTransformation { creditCardFilter(it) }

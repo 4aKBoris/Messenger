@@ -7,9 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.messenger.MessengerException
+import com.example.messenger.exception.MessengerException
 import com.example.messenger.data.User
 import com.example.messenger.network.Requests
+import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.ConnectException
@@ -62,14 +63,18 @@ class UserInfoViewModel : ViewModel() {
                     lastName = _lastName.value,
                     icon = _imageData.value?.let { context.contentResolver.openInputStream(it)?.readBytes() }
                 )
-                val post = Requests.registration(user = user)
-                if (!post) throw MessengerException("Не удалось зарегистрировать пользователя! Попробуйте ещё раз")
+                val flag = Requests.registration(user = user)
+                if (flag) Requests.authorization(phoneNumber = phoneNumber, password = password, navController = navController)
+                else throw MessengerException("Не удалось зарегистривроаться! Попробуйте ещё раз")
             } catch (e: MessengerException) {
                 _dialogState.value = true
                 _error.value = e.message!!
             } catch (e: ConnectException) {
                 _dialogState.value = true
                 _error.value = "Не удалось устаность соединение с сервером! Попробуйте ещё раз"
+            } catch (e: ClientRequestException) {
+                _dialogState.value = true
+                _error.value = "Авторизация неудачна, введён неверный пароль!"
             } finally {
                 _progress.value = false
             }

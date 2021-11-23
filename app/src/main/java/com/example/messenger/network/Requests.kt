@@ -1,21 +1,24 @@
 package com.example.messenger.network
 
-import com.example.messenger.data.AuthorizationData
+import androidx.navigation.NavController
 import com.example.messenger.data.User
+import com.example.messenger.navigation.screens.MainScreens
 import io.ktor.client.features.auth.*
 import io.ktor.client.features.auth.providers.*
-import io.ktor.client.request.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.net.ConnectException
 
 object Requests {
 
     private val client = HttpClient
 
+    private const val PhoneNumber = "phoneNumber"
+
     @Throws(ConnectException::class)
     suspend fun checkPhoneNumber(phoneNumber: String): Boolean {
         val directory = "checkPhoneNumber"
-        println(phoneNumber)
-        return client.get(client = client.client, directory = directory, pair = "phoneNumber" to phoneNumber)
+        return client.get(client = client.client, directory = directory, key = PhoneNumber, obj = phoneNumber)
     }
 
     @Throws(ConnectException::class)
@@ -24,31 +27,29 @@ object Requests {
         return client.post(client = client.client, directory = directory, obj = user)
     }
 
-    @Throws(ConnectException::class)
-    suspend fun authorization(data: AuthorizationData): String {
-        val c = client.client.config {
+    suspend fun authorization(phoneNumber: String, password: String, navController: NavController) {
+
+        client.client = client.client.config {
             install(Auth) {
                 digest {
-                    credentials {
-                        DigestAuthCredentials(username = "jetbrains", password = "foobar")
-                    }
+
                     realm = "RestAPI"
+
+                    credentials {
+                        DigestAuthCredentials(username = phoneNumber, password = password)
+                    }
                 }
             }
         }
-        val r = c.get<String>("${client.IpAddress}/")
-        println(r)
-        return "Jr"
+        val id = checkAuthorization(phoneNumber = phoneNumber)
+        withContext(Dispatchers.Main) {
+            navController.backQueue.clear()
+            navController.navigate(MainScreens.Chat.createRoute(id))
+        }
     }
 
-    @Throws(ConnectException::class)
-    suspend fun test() {
-        val k = client.client.get<String>("${client.IpAddress}/")
-        println(k)
-            /*headers {
-                //append(HttpHeaders.Authorization, "Digest username=\"jetbrains\", realm=\"RestAPI\", nonce=\"undefined\", uri=\"/authorization\", algorithm=\"MD5\", response=\"4d48f82aa88705499626613d481a0c9d\"")
-                //append(HttpHeaders.CacheControl, "no-cache")
-                //append("Postman-Token", "<calculated when request is sent>")
-            }*/
+    private suspend fun checkAuthorization(phoneNumber: String): Int {
+        val directory = "authorization"
+        return client.get(client = client.client, directory = directory, key = PhoneNumber, obj = phoneNumber)
     }
 }

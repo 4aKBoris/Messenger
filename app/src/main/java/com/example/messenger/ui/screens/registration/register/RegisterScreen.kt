@@ -51,6 +51,7 @@ fun RegisterScreen(
         importantError = importantError,
         buttonText = "Войти",
         onClick = {
+            viewModel.onCloseDialog()
             navController.navigate(
                 AuthorizationScreens.EnterPassword.createRoute(
                     phoneNumber = phoneNumber

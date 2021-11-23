@@ -1,12 +1,14 @@
 package com.example.messenger.ui.elements.alertdialog
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.messenger.Fun
+import com.example.messenger.`typealias`.Fun
 
 sealed class AlertDialogType(
     val dialogState: Boolean,
@@ -35,11 +37,15 @@ sealed class AlertDialogType(
         override fun DismissButton() {
             if (importantError)
                 Box(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clickable(onClick = onClick)
+                    modifier = Modifier.fillMaxWidth(fraction = 0.7f).padding(horizontal = 8.dp),
+                    contentAlignment = Alignment.CenterStart
                 ) {
-                    TextAlertDialogButton(text = buttonText)
+                    IconButton(
+                        onClick = onClick,
+                        modifier = Modifier.fillMaxWidth(fraction = 1f)
+                    ) {
+                        TextAlertDialogButton(text = buttonText)
+                    }
                 }
         }
     }

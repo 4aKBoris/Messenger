@@ -22,8 +22,8 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.unit.dp
-import com.example.messenger.CompFun
-import com.example.messenger.Fun
+import com.example.messenger.`typealias`.CompFun
+import com.example.messenger.`typealias`.Fun
 import com.example.messenger.ui.elements.alertdialog.AlertDialogBuilder
 import com.example.messenger.ui.elements.alertdialog.AlertDialogType
 import com.example.messenger.ui.theme.TelegramBlue

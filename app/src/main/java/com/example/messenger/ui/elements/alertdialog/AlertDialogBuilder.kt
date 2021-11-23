@@ -1,11 +1,14 @@
 package com.example.messenger.ui.elements.alertdialog
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -25,11 +28,15 @@ fun AlertDialogBuilder(
             title = { Text(text = "ДД INK Corporation", style = Typography.body1) },
             text = { Text(text = type.error, style = Typography.body2, color = Black) },
             confirmButton = {
-                IconButton(
-                    onClick = type.closeDialog,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                Box(
+                    modifier = Modifier.fillMaxWidth(fraction = 0.25f).padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterEnd
                 ) {
-                    TextAlertDialogButton(text = "OK")
+                    IconButton(
+                        onClick = type.closeDialog
+                    ) {
+                        TextAlertDialogButton(text = "OK")
+                    }
                 }
             },
             dismissButton = { type.DismissButton() },

@@ -4,12 +4,8 @@
 
 package com.example.messenger
 
-import com.example.messenger.network.Requests
+import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -35,13 +31,7 @@ class ExampleUnitTest {
     @OptIn(InternalAPI::class, kotlinx.coroutines.DelicateCoroutinesApi::class)
     @Test
     fun test2() {
-        GlobalScope.launch(Dispatchers.IO) {
-            var k = "123456"
-            k = Requests.test()
-            withContext(Dispatchers.Main) {
-                println("dwadw")
-            }
-        }
-        println("dwadwa")
+        println(HttpStatusCode.Unauthorized.value)
+        println(HttpStatusCode.OK.value)
     }
 }

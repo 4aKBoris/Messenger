@@ -11,7 +11,7 @@ import io.ktor.http.*
 
 object HttpClient {
 
-    val client = HttpClient(Android) {
+    var client = HttpClient(Android) {
         install(Logging) {
             level = LogLevel.ALL
         }
@@ -37,26 +37,22 @@ object HttpClient {
     }
 
     suspend inline fun <reified T> get(
-        pair: Pair<String, Any>,
+        key: String,
+        obj: Any,
         client: HttpClient,
         directory: String,
         IP: String = IpAddress
     ): T {
         return client.get("$IP/$directory") {
-            parameter(pair.first, pair.second)
+            parameter(key, obj)
         }
     }
 
     suspend inline fun <reified T> get(
         client: HttpClient,
         directory: String,
-        headersBuilder: HeadersBuilder,
         IP: String = IpAddress
     ): T {
-        return client.get("$IP/$directory") {
-            headers {
-                headersBuilder.build()
-            }
-        }
+        return client.get("$IP/$directory")
     }
 }

@@ -1,4 +1,4 @@
-package com.example.messenger
+package com.example.messenger.exception
 
 class MessengerException: Exception {
     constructor() : super()

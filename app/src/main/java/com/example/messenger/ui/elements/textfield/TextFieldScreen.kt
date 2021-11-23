@@ -11,7 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
-import com.example.messenger.StrFun
+import androidx.compose.ui.text.input.KeyboardType
+import com.example.messenger.`typealias`.StrFun
 import com.example.messenger.ui.theme.Black
 import com.example.messenger.ui.theme.TelegramBlue
 import com.example.messenger.ui.theme.Typography
@@ -38,7 +39,7 @@ fun TextFieldScreen(text: String?, setText: StrFun, type: TextFieldType) {
         textStyle = Typography.body1,
         keyboardOptions = KeyboardOptions(
             autoCorrect = type.autoCorrect,
-            keyboardType = type.keyboardType,
+            keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Done
         ),
         visualTransformation = type.visualTransformation,

@@ -1,6 +1,6 @@
 @file:Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
 
-package com.example.messenger.ui.screens
+package com.example.messenger.ui.screens.main.chat
 
 import androidx.animation.FastOutSlowInEasing
 import androidx.animation.LinearOutSlowInEasing
@@ -35,15 +35,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import com.example.messenger.Fun
+import com.example.messenger.`typealias`.Fun
 import com.example.messenger.R
-import com.example.messenger.StrFun
+import com.example.messenger.`typealias`.StrFun
 import com.example.messenger.messages.Message
-import com.example.messenger.ui.screens.main.chat.ChatViewModel
 import com.example.messenger.ui.theme.*
 
 @Composable
-fun ChatScreen(viewModel: ChatViewModel) {
+fun ChatScreen(id: Int, viewModel: ChatViewModel) {
 
     val (message, setMessage) = remember { mutableStateOf("") }
 

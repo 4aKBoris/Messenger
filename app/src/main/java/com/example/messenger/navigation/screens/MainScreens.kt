@@ -35,4 +35,15 @@ sealed class MainScreens: Screen {
         fun createRoute() = route
     }
 
+    object Chat: MainScreens() {
+
+        override val name: String
+            get() = "chat"
+
+        override val route: String
+            get() = "id/{id}/$name"
+
+        fun createRoute(id: Int) = "id/$id/$name"
+    }
+
 }

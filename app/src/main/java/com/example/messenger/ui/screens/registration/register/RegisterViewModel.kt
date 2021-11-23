@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.messenger.MessengerException
+import com.example.messenger.exception.MessengerException
 import com.example.messenger.navigation.screens.RegistrationScreens
 import com.example.messenger.network.Requests
 import kotlinx.coroutines.Dispatchers

@@ -1,6 +1,6 @@
 @file:Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
 
-package com.example.messenger.ui.screens
+package com.example.messenger.ui.screens.main.welcome
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

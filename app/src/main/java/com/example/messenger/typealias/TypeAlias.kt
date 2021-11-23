@@ -1,4 +1,4 @@
-package com.example.messenger
+package com.example.messenger.`typealias`
 
 import androidx.compose.runtime.Composable
 

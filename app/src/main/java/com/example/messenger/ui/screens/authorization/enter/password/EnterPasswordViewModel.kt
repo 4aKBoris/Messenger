@@ -5,16 +5,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.messenger.MessengerException
-import com.example.messenger.data.AuthorizationData
+import com.example.messenger.exception.MessengerException
 import com.example.messenger.network.Requests
+import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 
 class EnterPasswordViewModel : ViewModel() {
 
-    private val _password = mutableStateOf("")
+    private val _password = mutableStateOf("127485ldaLDA")
     private val _progress = mutableStateOf(false)
     private val _error = mutableStateOf("")
     private val _dialogState = mutableStateOf(false)
@@ -38,18 +38,18 @@ class EnterPasswordViewModel : ViewModel() {
             try {
                 _progress.value = true
                 if (_password.value.isBlank()) throw MessengerException("Введите пароль!")
-                val data = AuthorizationData(phoneNumber = phoneNumber, password = _password.value)
-                val post = Requests.authorization(data = data)
-                println(post)
-                //if (!post) throw MessengerException("Не удалось авторизоваться! Попробуйте ещё раз")
+                Requests.authorization(phoneNumber = phoneNumber, password = _password.value, navController = navController)
             } catch (e: MessengerException) {
                 _dialogState.value = true
                 _error.value = e.message!!
             } catch (e: ConnectException) {
                 _dialogState.value = true
                 _error.value = "Не удалось устаность соединение с сервером! Попробуйте ещё раз"
+            } catch (e: ClientRequestException) {
+                _dialogState.value = true
+                _error.value = "Авторизация неудачна, введён неверный пароль!"
             } catch (e: Exception) {
-                println(e.message)
+                println(e.toString())
             } finally {
                 _progress.value = false
             }
