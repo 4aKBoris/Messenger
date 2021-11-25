@@ -15,10 +15,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.messenger.R
 import com.example.messenger.ui.elements.alertdialog.AlertDialogType
 import com.example.messenger.ui.elements.progressbar.ProgressBar
 import com.example.messenger.ui.elements.screen.Screen
@@ -120,7 +118,7 @@ fun UserInfoScreen(
                             .clickable { selectImageLauncher.launch("image/*") },
                         contentAlignment = Alignment.Center
                     ) {
-                        GlideImage(imageModel = imageData ?: painterResource(id = R.drawable.door))
+                        GlideImage(imageModel = imageData)
                     }
                 }
 

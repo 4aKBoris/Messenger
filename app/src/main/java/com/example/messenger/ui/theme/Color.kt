@@ -16,3 +16,4 @@ val DarkGreen = Color(0xFF0E7927)
 val DarkGray = Color(0xFF757575)
 val Red = Color.Red
 val Green = Color.Green
+val SystemMessage = Color(0xBF57614C)

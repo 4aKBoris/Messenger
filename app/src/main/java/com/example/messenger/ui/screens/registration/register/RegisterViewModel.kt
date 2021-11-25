@@ -43,7 +43,7 @@ class RegisterViewModel : ViewModel() {
         try {
             _progress.value = true
             if (_phoneNumber.value.length != 12) throw MessengerException("Телефонный номер введён некорректно!")
-            val check = Requests.checkPhoneNumber(phoneNumber = _phoneNumber.value)
+            val check = Requests.checkPhoneNumber(phoneNumber = _phoneNumber.value.removePrefix("+"))
             check(check = check, navController = navController)
         } catch (e: MessengerException) {
             _dialogState.value = true
@@ -68,7 +68,7 @@ class RegisterViewModel : ViewModel() {
                 _importantError.value = true
             }
             false -> withContext(Dispatchers.Main) {
-                navController.navigate(RegistrationScreens.CreatePassword.createRoute(_phoneNumber.value))
+                navController.navigate(RegistrationScreens.CreatePassword.createRoute(_phoneNumber.value.removePrefix("+")))
             }
         }
     }

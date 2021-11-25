@@ -4,10 +4,12 @@
 
 package com.example.messenger
 
-import io.ktor.http.*
-import io.ktor.util.*
+import com.example.messenger.data.Message
+import kotlinx.datetime.toKotlinLocalDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.security.MessageDigest
+import java.time.LocalDateTime
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -28,10 +30,12 @@ class ExampleUnitTest {
         println(k)
     }
 
-    @OptIn(InternalAPI::class, kotlinx.coroutines.DelicateCoroutinesApi::class)
     @Test
     fun test2() {
-        println(HttpStatusCode.Unauthorized.value)
-        println(HttpStatusCode.OK.value)
+        val message = Message(message = "32423dawadwa", userId = 5, dateTime = LocalDateTime.now().toKotlinLocalDateTime())
+        println(message = message.toString())
     }
+
+    private fun getDigest(str: String): ByteArray =
+        MessageDigest.getInstance("MD5").digest(str.toByteArray(Charsets.UTF_8))
 }

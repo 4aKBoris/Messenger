@@ -7,13 +7,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.messenger.exception.MessengerException
 import com.example.messenger.data.User
+import com.example.messenger.exception.MessengerException
 import com.example.messenger.network.Requests
 import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.ConnectException
+import java.security.MessageDigest
 
 
 class UserInfoViewModel : ViewModel() {
@@ -49,22 +50,36 @@ class UserInfoViewModel : ViewModel() {
         _error.value = ""
     }
 
-    fun registerUser(phoneNumber: String, password: String, navController: NavController, context: Context) =
+    fun registerUser(
+        phoneNumber: String,
+        password: String,
+        navController: NavController,
+        context: Context
+    ) =
         viewModelScope.launch(
             Dispatchers.IO
         ) {
             try {
                 _progress.value = true
                 if (_firstName.value.isBlank()) throw MessengerException("Введите имя!")
+                val digest = getDigest("$phoneNumber:$myRealm:$password")
+                println(digest.joinToString())
                 val user = User(
                     phoneNumber = phoneNumber,
-                    password = password,
+                    password = digest,
                     firstName = _firstName.value,
                     lastName = _lastName.value,
-                    icon = _imageData.value?.let { context.contentResolver.openInputStream(it)?.readBytes() }
+                    icon = _imageData.value?.let {
+                        context.contentResolver.openInputStream(it)?.readBytes()
+                    }
                 )
+                println(user.toString())
                 val flag = Requests.registration(user = user)
-                if (flag) Requests.authorization(phoneNumber = phoneNumber, password = password, navController = navController)
+                if (flag) Requests.authorization(
+                    phoneNumber = phoneNumber,
+                    password = password,
+                    navController = navController
+                )
                 else throw MessengerException("Не удалось зарегистривроаться! Попробуйте ещё раз")
             } catch (e: MessengerException) {
                 _dialogState.value = true
@@ -79,4 +94,14 @@ class UserInfoViewModel : ViewModel() {
                 _progress.value = false
             }
         }
+
+    companion object {
+
+        private fun getDigest(str: String): ByteArray =
+            MessageDigest.getInstance(digestAlgorithm).digest(str.toByteArray(Charsets.UTF_8))
+
+        private const val digestAlgorithm = "MD5"
+
+        private const val myRealm = "RestAPI"
+    }
 }

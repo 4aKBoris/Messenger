@@ -9,3 +9,5 @@ typealias BoolFun = (Boolean) -> Unit
 typealias CompFun = @Composable Fun
 
 typealias Fun = () -> Unit
+
+typealias IntFunStr = (Int) -> String
