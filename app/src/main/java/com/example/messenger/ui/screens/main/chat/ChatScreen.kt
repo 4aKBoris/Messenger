@@ -3,6 +3,8 @@ package com.example.messenger.ui.screens.main.chat
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,13 +25,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavController
 import com.example.messenger.R
-import com.example.messenger.`typealias`.IntFunStr
-import com.example.messenger.data.Message
+import com.example.messenger.`typealias`.BoolFun
+import com.example.messenger.`typealias`.Fun
+import com.example.messenger.data.*
+import com.example.messenger.network.Requests
 import com.example.messenger.ui.screens.main.chat.bar.bottom.BottomBar
 import com.example.messenger.ui.screens.main.chat.bar.top.TopBar
 import com.example.messenger.ui.screens.main.chat.drawer.Drawer
 import com.example.messenger.ui.theme.*
+import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,17 +46,29 @@ import java.time.format.DateTimeFormatter
 @SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ChatScreen(id: Int, viewModel: ChatViewModel) {
+fun ChatScreen(data: LoginData, navController: NavController, viewModel: ChatViewModel) {
 
     val usersCount = viewModel.users.value.size
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = id, block = {
+    var user by remember {
+        mutableStateOf(
+            FullUser(
+                id = -2, user = User(
+                    data = LoginData(phoneNumber = "79000000000", password = byteArrayOf()),
+                    dataUser = DataUser(firstName = "Никита", lastName = "Архипов", icon = null)
+                )
+            )
+        )
+    }
+
+    LaunchedEffect(key1 = data.phoneNumber, block = {
         withContext(Dispatchers.IO) {
+            user = viewModel.getUserInfo(data = data)
             viewModel.getUsers()
             viewModel.getMessages()
-            viewModel.getMessage(id = id)
+            viewModel.getMessage(id = user.id)
         }
     })
 
@@ -69,16 +88,51 @@ fun ChatScreen(id: Int, viewModel: ChatViewModel) {
 
     val scroll by remember { viewModel.scroll }
 
+    val dialogSettings by remember { viewModel.dialogSettings }
+
+    val dialogAbout by remember { viewModel.dialogAbout }
+
+    val users by remember { viewModel.users }
+
+    val dialogInfo by remember { viewModel.dialogInfo }
+
     Scaffold(modifier = Modifier.fillMaxSize(),
         scaffoldState = scaffoldState,
-        topBar = { TopBar(countMembers = usersCount, openDrawer = openDrawer) },
+        topBar = {
+            TopBar(
+                countMembers = usersCount,
+                openDrawer = openDrawer,
+                onChangeDialogInfo = viewModel::onChangeDialogInfo
+            )
+        },
         bottomBar = {
             BottomBar(
                 message = message,
                 setMessage = viewModel::onChangeMessage,
-                onSendClick = { viewModel.onSendClick(id = id) })
+                onSendClick = { viewModel.onSendClick(id = user.id) })
         },
-        drawerContent = { Drawer() }) { paddingValues ->
+        drawerContent = {
+            Drawer(
+                user = user.user,
+                onDelete = { viewModel.onDelete(loginData = data, navController = navController) },
+                onChangeData = {
+                    viewModel.onDataChangeNavigation(
+                        user = user.user,
+                        navController = navController
+                    )
+                },
+                onChangePassword = {
+                    viewModel.onPasswordChangeNavigation(
+                        data = data,
+                        navController = navController
+                    )
+                },
+                dialogSettings = dialogSettings,
+                dialogAbout = dialogAbout,
+                onChangeDialogSettings = viewModel::onChangeDialogSettings,
+                onChangeDialogAbout = viewModel::onChangeDialogAbout
+            )
+        }) { paddingValues ->
         Box(
             modifier = Modifier
                 .padding(paddingValues = paddingValues)
@@ -93,7 +147,14 @@ fun ChatScreen(id: Int, viewModel: ChatViewModel) {
                 contentScale = ContentScale.FillBounds
             )
 
-            Content(id = id, messages = messages, scroll = scroll, getName = viewModel::getUserName)
+            Content(
+                id = user.id,
+                messages = messages,
+                scroll = scroll,
+                users = users,
+                dialogState = dialogInfo,
+                onChangeDialogInfo = viewModel::onChangeDialogInfo
+            )
         }
     }
 }
@@ -103,14 +164,20 @@ fun ChatScreen(id: Int, viewModel: ChatViewModel) {
 private fun Content(
     id: Int,
     scroll: Boolean,
-    getName: IntFunStr,
-    messages: List<Message>
+    users: List<ChatUser>,
+    messages: List<Message>,
+    dialogState: Boolean,
+    onChangeDialogInfo: BoolFun
 ) {
 
     val state = rememberLazyListState()
 
     LaunchedEffect(key1 = scroll) {
         state.scrollToItem(messages.size)
+    }
+
+    if (dialogState) DialogInfo(dialogState = dialogState, count = users.size) {
+        onChangeDialogInfo(false)
     }
 
     LazyColumn(
@@ -128,7 +195,7 @@ private fun Content(
                 else -> OtherMessage(
                     message = it.message,
                     time = time,
-                    userName = getName(it.userId)
+                    user = users.find { u -> u.id == it.userId }
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -140,20 +207,33 @@ private fun Content(
 private val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
 @Composable
-private fun OtherMessage(message: String, time: String, userName: String) {
+private fun OtherMessage(message: String, time: String, user: ChatUser?) {
     Row(
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.Start
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.door),
-            contentDescription = "Аватар пользователя",
+        Box(
             modifier = Modifier
                 .padding(horizontal = 12.dp, vertical = 4.dp)
                 .size(48.dp)
                 .clip(CircleShape)
-        )
-        Message(text = message, time = time, userName = userName)
+                .background(color = TelegramBlue.copy(alpha = 0.8f)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (user?.dataUser?.icon == null) Text(
+                text = user?.dataUser?.getInit() ?: "",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.W400
+            ) else
+                GlideImage(
+                    imageModel = user.dataUser.icon,
+                    contentDescription = "Аватар пользователя",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                )
+        }
+        Message(text = message, time = time, userName = user?.dataUser?.getName() ?: "")
     }
 }
 
@@ -246,5 +326,163 @@ private fun SystemMessage(message: String) {
                 fontWeight = FontWeight.W600
             )
         }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+private fun DialogInfo(dialogState: Boolean, count: Int, onCloseDialog: Fun) {
+
+    val users = remember { mutableStateListOf<UserInfo>() }
+
+    LaunchedEffect(key1 = dialogState) {
+        withContext(Dispatchers.IO) {
+            users.addAll(Requests.getUsersInfo())
+        }
+    }
+
+    println(users.size)
+
+    Dialog(onDismissRequest = onCloseDialog) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth().clip(RoundedCornerShape(size = 16.dp))
+                .background(color = White),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Text(
+                text = "Список пользователей",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                textAlign = TextAlign.Center
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(color = White),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start,
+                contentPadding = PaddingValues(all = 16.dp)
+            ) {
+                if (users.isEmpty())
+                    for (i in 0 until count) item { UserPlug() }
+                else users.forEach {
+                    item { UserProfile(user = it) }
+                }
+            }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+private fun UserPlug() {
+
+    val infiniteTransition = rememberInfiniteTransition()
+    val color by infiniteTransition.animateColor(
+        initialValue = White,
+        targetValue = LightGray,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(color = color),
+        )
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = "",
+                style = HintStyle,
+                color = TelegramBlue,
+                modifier = Modifier
+                    .fillMaxWidth(fraction = 0.5f)
+                    .background(color = color)
+            )
+            Text(
+                text = "",
+                style = Time,
+                modifier = Modifier
+                    .fillMaxWidth(fraction = 0.7f)
+                    .background(color = color)
+            )
+        }
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+private fun UserProfile(user: UserInfo) {
+
+    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd-MM-yyyy")
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(color = TelegramBlue.copy(alpha = 0.8f)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (user.dataUser.icon == null) Text(
+                text = user.dataUser.getInit(),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.W400
+            ) else
+                GlideImage(
+                    imageModel = user.dataUser.icon,
+                    contentDescription = "Аватар пользователя",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                )
+        }
+        UserName(
+            name = user.dataUser.getName(),
+            registrationData = user.registrationData.toJavaLocalDateTime().format(formatter) ?: ""
+        )
+    }
+}
+
+@Composable
+private fun UserName(name: String, registrationData: String) {
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(
+            text = name,
+            style = HintStyle,
+            color = TelegramBlue
+        )
+        Text(
+            text = "Дата регистрации: \n$registrationData",
+            style = Time,
+        )
     }
 }
