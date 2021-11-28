@@ -29,9 +29,8 @@ object HttpClient {
         obj: Any,
         client: HttpClient,
         directory: String,
-        IP: String = IpAddress
     ): T {
-        return client.post("$IP/$directory") {
+        return client.post("$IpAddress/$directory") {
             body = obj
         }
     }
@@ -41,18 +40,36 @@ object HttpClient {
         obj: Any,
         client: HttpClient,
         directory: String,
-        IP: String = IpAddress
     ): T {
-        return client.get("$IP/$directory") {
+        return client.get("$IpAddress/$directory") {
             parameter(key, obj)
         }
     }
 
     suspend inline fun <reified T> get(
         client: HttpClient,
-        directory: String,
-        IP: String = IpAddress
+        directory: String
     ): T {
-        return client.get("$IP/$directory")
+        return client.get("$IpAddress/$directory")
+    }
+
+    suspend inline fun <reified T> delete(
+        client: HttpClient,
+        obj: Any,
+        directory: String
+    ): T {
+        return client.delete("$IpAddress/$directory") {
+            body = obj
+        }
+    }
+
+    suspend inline fun <reified T> put(
+        client: HttpClient,
+        obj: Any,
+        directory: String
+    ): T {
+        return client.put("$IpAddress/$directory") {
+            body = obj
+        }
     }
 }
