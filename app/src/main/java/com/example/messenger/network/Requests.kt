@@ -1,14 +1,15 @@
 package com.example.messenger.network
 
 import androidx.navigation.NavController
-import com.example.messenger.data.ChatUser
-import com.example.messenger.data.Message
-import com.example.messenger.data.User
+import com.example.messenger.data.*
+import com.example.messenger.exception.MessengerException
 import com.example.messenger.navigation.screens.MainScreens
 import io.ktor.client.features.auth.*
 import io.ktor.client.features.auth.providers.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 object Requests {
 
@@ -18,7 +19,12 @@ object Requests {
 
     suspend fun checkPhoneNumber(phoneNumber: String): Boolean {
         val directory = "checkPhoneNumber"
-        return client.get(client = client.client, directory = directory, key = PhoneNumber, obj = phoneNumber)
+        return client.get(
+            client = client.client,
+            directory = directory,
+            key = PhoneNumber,
+            obj = phoneNumber
+        )
     }
 
     suspend fun registration(user: User): Boolean {
@@ -26,7 +32,9 @@ object Requests {
         return client.post(client = client.client, directory = directory, obj = user)
     }
 
-    suspend fun authorization(phoneNumber: String, password: String, navController: NavController) {
+    suspend fun authorization(data: LoginData, password: String, navController: NavController) {
+
+        val directory = "authorization"
 
         client.client = client.client.config {
             install(Auth) {
@@ -35,21 +43,34 @@ object Requests {
                     realm = "RestAPI"
 
                     credentials {
-                        DigestAuthCredentials(username = phoneNumber, password = password)
+                        DigestAuthCredentials(username = data.phoneNumber, password = password)
                     }
                 }
             }
         }
-        val id = checkAuthorization(phoneNumber = phoneNumber)
-        withContext(Dispatchers.Main) {
-            navController.backQueue.clear()
-            navController.navigate(MainScreens.Chat.createRoute(id))
-        }
+        val flag = client.get<Boolean>(client = client.client, directory = directory)
+        if (!flag) throw MessengerException("Не удалось авторизоваться! Попробуйте ещё раз")
+        else
+            withContext(Dispatchers.Main) {
+                navController.backQueue.clear()
+                navController.navigate(MainScreens.Chat.createRoute(data = data))
+            }
     }
 
-    private suspend fun checkAuthorization(phoneNumber: String): Int {
-        val directory = "authorization"
-        return client.get(client = client.client, directory = directory, key = PhoneNumber, obj = phoneNumber)
+    suspend fun getUserInfo(data: LoginData): FullUser {
+        val directory = "user"
+        return client.get(
+            key = "data",
+            obj = Json.encodeToString(data),
+            client = client.client,
+            directory = directory
+        )
+    }
+
+    suspend fun getIcon(data: LoginData): ByteArray? {
+        val directory = "icon"
+        val icon = client.get<ByteArray>(key = "data", obj = Json.encodeToString(data), client = client.client, directory = directory)
+        return if (icon.isEmpty()) null else icon
     }
 
     suspend fun getUsers(): List<ChatUser> {
@@ -72,5 +93,23 @@ object Requests {
         return client.post(client = client.client, directory = directory, obj = message)
     }
 
+    suspend fun deleteUser(data: LoginData): Boolean {
+        val directory = "user"
+        return client.delete(client = client.client, directory = directory, obj = data)
+    }
 
+    suspend fun changePassword(changePassword: ChangePassword): Boolean {
+        val directory = "user/password"
+        return client.put(client = client.client, directory = directory, obj = changePassword)
+    }
+
+    suspend fun changeData(data: User): Boolean {
+        val directory = "user/info"
+        return client.put(client = client.client, directory = directory, obj = data)
+    }
+
+    suspend fun getUsersInfo(): List<UserInfo> {
+        val directory = "user/info"
+        return client.get(client = client.client, directory = directory)
+    }
 }
