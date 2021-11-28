@@ -9,7 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Queue
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,23 +17,43 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.messenger.`typealias`.BoolFun
 import com.example.messenger.`typealias`.Fun
+import com.example.messenger.data.DataUser
+import com.example.messenger.data.User
 import com.example.messenger.ui.screens.main.chat.drawer.alertdialog.DialogAbout
 import com.example.messenger.ui.screens.main.chat.drawer.alertdialog.DialogSettings
 import com.example.messenger.ui.theme.*
 import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
-fun Drawer(phoneNumber: String, firstName: String, lastName: String?, avatar: ByteArray?) {
+fun Drawer(
+    user: User,
+    onDelete: Fun,
+    onChangeData: Fun,
+    onChangePassword: Fun,
+    dialogSettings: Boolean,
+    dialogAbout: Boolean,
+    onChangeDialogSettings: BoolFun,
+    onChangeDialogAbout: BoolFun
+) {
 
-    Header(phoneNumber = phoneNumber, firstName = firstName, lastName = lastName, avatar = avatar)
+    Header(phoneNumber = user.data.phoneNumber, data = user.dataUser)
 
-    Body()
+    Body(
+        onDelete,
+        onChangeData,
+        onChangePassword,
+        dialogSettings,
+        dialogAbout,
+        onChangeDialogSettings,
+        onChangeDialogAbout
+    )
 
 }
 
 @Composable
-private fun Header(phoneNumber: String, firstName: String, lastName: String?, avatar: ByteArray?) {
+private fun Header(phoneNumber: String, data: DataUser) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -49,14 +69,17 @@ private fun Header(phoneNumber: String, firstName: String, lastName: String?, av
                 .background(color = TelegramBlue.copy(red = 0.8f)),
             contentAlignment = Alignment.Center
         ) {
-            if (avatar == null) {
-                val name =
-                    if (lastName == null) "${firstName.first()}" else "${firstName.first()}${lastName.first()}"
-                Text(text = name, fontSize = 36.sp, fontWeight = FontWeight.W400)
-            } else GlideImage(imageModel = avatar)
+            if (data.icon == null) Text(
+                text = data.getInit(),
+                fontSize = 36.sp,
+                fontWeight = FontWeight.W400
+            ) else GlideImage(imageModel = data.icon)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "$firstName ${lastName ?: ""}", modifier = Modifier.padding(start = 32.dp))
+        Text(
+            text = "${data.firstName} ${data.lastName ?: ""}",
+            modifier = Modifier.padding(start = 32.dp)
+        )
         Text(
             text = getPhoneNumber(phoneNumber = phoneNumber),
             modifier = Modifier.padding(start = 32.dp),
@@ -68,21 +91,26 @@ private fun Header(phoneNumber: String, firstName: String, lastName: String?, av
 }
 
 @Composable
-private fun Body() {
-
-    var dialogSettings by remember { mutableStateOf(false) }
-
-    var dialogAbout by remember { mutableStateOf(false) }
+private fun Body(
+    onDelete: Fun,
+    onChangeData: Fun,
+    onChangePassword: Fun,
+    dialogSettings: Boolean,
+    dialogAbout: Boolean,
+    onChangeDialogSettings: BoolFun,
+    onChangeDialogAbout: BoolFun
+) {
 
     DialogSettings(
         dialogState = dialogSettings,
-        onClose = { dialogSettings = false },
-        onDelete = { },
-        onChangeData = { },
-        onChangePassword = { })
+        onClose = { onChangeDialogSettings(false) },
+        onDelete = onDelete,
+        onChangeData = onChangeData,
+        onChangePassword = onChangePassword
+    )
 
     DialogAbout(dialogState = dialogAbout) {
-        dialogAbout = false
+        onChangeDialogAbout(false)
     }
 
     Column(
@@ -93,7 +121,7 @@ private fun Body() {
         verticalArrangement = Arrangement.Top
     ) {
         Item(imageVector = Icons.Filled.Settings, name = "Настройки") {
-            dialogSettings = true
+            onChangeDialogSettings(true)
         }
 
         Spacer(
@@ -104,7 +132,7 @@ private fun Body() {
         )
 
         Item(imageVector = Icons.Default.Queue, name = "О приложении") {
-            dialogAbout = true
+            onChangeDialogAbout(true)
         }
     }
 }
