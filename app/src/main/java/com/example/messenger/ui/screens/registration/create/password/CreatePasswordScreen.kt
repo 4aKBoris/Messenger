@@ -2,6 +2,7 @@
 
 package com.example.messenger.ui.screens.registration.create.password
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +26,8 @@ fun CreatePasswordScreen(
     viewModel: CreatePasswordViewModel,
     navController: NavController
 ) {
+
+    Log.d("Test", phoneNumber)
 
     val focusManager = LocalFocusManager.current
 
@@ -98,71 +101,3 @@ fun CreatePasswordScreen(
     }
 }
 
-/*@Composable
-fun CreatePasswordScreen(
-    phoneNumber: String,
-    viewModel: CreatePasswordViewModel,
-    navController: NavController
-) {
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        floatingActionButtonPosition = FabPosition.End,
-        isFloatingActionButtonDocked = false,
-        floatingActionButton = {
-            com.example.messenger.ui.screens.authentication.FloatingActionButton(
-                onClick = {
-                    viewModel.checkPassword(
-                        phoneNumber = phoneNumber,
-                        navController = navController
-                    )
-                }
-            )
-        },
-        content = { Screen(viewModel = viewModel) },
-    )
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-private fun Screen(viewModel: CreatePasswordViewModel) {
-
-    val focusManager = LocalFocusManager.current
-
-    val password1 by remember { viewModel.password1 }
-
-    val password2 by remember { viewModel.password2 }
-
-    val dialogState by remember { viewModel.dialogState }
-
-    val error by remember { viewModel.error }
-
-    AlertDialogBuilder(
-        dialogState = dialogState,
-        error = error,
-        closeDialog = viewModel::onCloseDialog
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .noRippleClickable {
-                focusManager.clearFocus(true)
-            }) {
-
-        val keyboardController = LocalSoftwareKeyboardController.current
-
-        TextFiledPassword(
-            password = password1,
-            placeholderText = "Введите пароль",
-            onChangePassword = viewModel::onChangePassword1,
-            keyboardController = keyboardController
-        )
-
-        TextFiledPassword(
-            password = password2,
-            placeholderText = "Повторите пароль",
-            onChangePassword = viewModel::onChangePassword2,
-            keyboardController = keyboardController
-        )
-    }
-}*/

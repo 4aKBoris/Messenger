@@ -4,7 +4,9 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import com.example.messenger.data.LoginData
 import com.example.messenger.navigation.screens.RegistrationScreens
+import java.security.MessageDigest
 
 class CreatePasswordViewModel : ViewModel() {
 
@@ -37,6 +39,7 @@ class CreatePasswordViewModel : ViewModel() {
     }
 
     fun checkPassword(phoneNumber: String, navController: NavController) {
+        println(phoneNumber)
         when (true) {
             _password1.value.isBlank() -> onOpenDialog("Введите пароль!")
             _password1.value != _password2.value -> onOpenDialog("Введёные пароли не совпадают!")
@@ -44,14 +47,25 @@ class CreatePasswordViewModel : ViewModel() {
             _password1.value.length <= 7 -> onOpenDialog("Длина пароля должна быть 8 символов и больше!")
             else -> navController.navigate(
                 RegistrationScreens.UserInfo.createRoute(
-                    phoneNumber = phoneNumber,
-                    password = _password1.value
+                    password = _password1.value,
+                    data = LoginData(
+                        phoneNumber = phoneNumber,
+                        password = getDigest("$phoneNumber:$myRealm:${_password1.value}")
+                    )
                 )
             )
         }
     }
 
     companion object {
+
         private val regBigSymbol = Regex("[A-Z]+")
+
+        private fun getDigest(str: String): ByteArray =
+            MessageDigest.getInstance(digestAlgorithm).digest(str.toByteArray(Charsets.UTF_8))
+
+        private const val digestAlgorithm = "MD5"
+
+        private const val myRealm = "RestAPI"
     }
 }
