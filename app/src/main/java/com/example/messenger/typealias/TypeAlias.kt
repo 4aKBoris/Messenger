@@ -10,4 +10,4 @@ typealias CompFun = @Composable Fun
 
 typealias Fun = () -> Unit
 
-typealias IntFunStr = (Int) -> String
+const val LOG_TAG = "LOG_TAG"
