@@ -54,7 +54,7 @@ fun RegisterScreen(
             viewModel.onCloseDialog()
             navController.navigate(
                 AuthorizationScreens.EnterPassword.createRoute(
-                    phoneNumber = phoneNumber
+                    phoneNumber = phoneNumber.removePrefix("+")
                 )
             )
         }
