@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.example.messenger.R
+import com.example.messenger.`typealias`.BoolFun
 import com.example.messenger.`typealias`.Fun
 import com.example.messenger.ui.theme.ChatNameStyle
 import com.example.messenger.ui.theme.MembersCountStyle
@@ -26,7 +27,7 @@ import com.example.messenger.ui.theme.TelegramBlue
 import com.example.messenger.ui.theme.White
 
 @Composable
-fun TopBar(countMembers: Int, openDrawer: Fun) {
+fun TopBar(countMembers: Int, openDrawer: Fun, onChangeDialogInfo: BoolFun) {
     TopAppBar(modifier = Modifier.fillMaxWidth(), backgroundColor = TelegramBlue) {
 
         ConstraintLayout(
@@ -78,7 +79,7 @@ fun TopBar(countMembers: Int, openDrawer: Fun) {
                     start.linkTo(chatIcon.end, 16.dp)
                 })
 
-            IconButton(onClick = { /*TODO*/ }, modifier = Modifier.constrainAs(infoIcon) {
+            IconButton(onClick = { onChangeDialogInfo(true) }, modifier = Modifier.constrainAs(infoIcon) {
                 top.linkTo(parent.top)
                 bottom.linkTo(parent.bottom)
                 end.linkTo(parent.end)
