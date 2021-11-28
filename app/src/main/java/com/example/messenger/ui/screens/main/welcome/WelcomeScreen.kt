@@ -42,7 +42,7 @@ fun WelcomeScreen(navController: NavController) {
         )
 
         IconButton(
-            onClick = { navController.navigate(RegistrationScreens.Register.route) },
+            onClick = { navController.navigate(RegistrationScreens.Register.createRoute()) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -65,7 +65,7 @@ fun WelcomeScreen(navController: NavController) {
         })
 
         IconButton(
-            onClick = { navController.navigate(AuthorizationScreens.Login.route) },
+            onClick = { navController.navigate(AuthorizationScreens.Login.createRoute()) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
