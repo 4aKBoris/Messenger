@@ -4,7 +4,6 @@ package com.example.messenger
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.example.messenger.network.Requests
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -31,7 +30,7 @@ class ExampleInstrumentedTest {
     @Test
     fun test() {
         GlobalScope.launch(Dispatchers.IO) {
-            println(Requests.test())
+            //println(Requests.test())
         }
     }
 }
