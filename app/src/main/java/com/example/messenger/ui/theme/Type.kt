@@ -5,7 +5,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // Set of Material typography styles to start with
@@ -70,4 +69,11 @@ val HintStyle = TextStyle(
     fontSize = 14.sp,
     fontWeight = FontWeight.W600,
     color = DarkGray, textAlign = TextAlign.Center
+)
+
+val SystemMessageStyle = TextStyle(
+    color = White,
+    fontSize = 14.sp,
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.W600
 )
