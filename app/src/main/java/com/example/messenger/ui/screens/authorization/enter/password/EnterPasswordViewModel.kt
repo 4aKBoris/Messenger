@@ -5,12 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.messenger.data.LoginData
 import com.example.messenger.exception.MessengerException
 import com.example.messenger.network.Requests
 import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.ConnectException
+import java.security.MessageDigest
 
 class EnterPasswordViewModel : ViewModel() {
 
@@ -38,7 +40,12 @@ class EnterPasswordViewModel : ViewModel() {
             try {
                 _progress.value = true
                 if (_password.value.isBlank()) throw MessengerException("Введите пароль!")
-                Requests.authorization(phoneNumber = phoneNumber, password = _password.value, navController = navController)
+                Requests.authorization(
+                    data = LoginData(
+                        phoneNumber = phoneNumber,
+                        password = getDigest("$phoneNumber:$myRealm:${_password.value}")
+                    ), password = _password.value, navController = navController
+                )
             } catch (e: MessengerException) {
                 _dialogState.value = true
                 _error.value = e.message!!
@@ -48,10 +55,18 @@ class EnterPasswordViewModel : ViewModel() {
             } catch (e: ClientRequestException) {
                 _dialogState.value = true
                 _error.value = "Авторизация неудачна, введён неверный пароль!"
-            } catch (e: Exception) {
-                println(e.toString())
             } finally {
                 _progress.value = false
             }
         }
+
+    companion object {
+
+        private fun getDigest(str: String): ByteArray =
+            MessageDigest.getInstance(digestAlgorithm).digest(str.toByteArray(Charsets.UTF_8))
+
+        private const val digestAlgorithm = "MD5"
+
+        private const val myRealm = "RestAPI"
+    }
 }
