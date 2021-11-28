@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.messenger.data.DataUser
+import com.example.messenger.data.LoginData
 import com.example.messenger.data.User
 import com.example.messenger.exception.MessengerException
 import com.example.messenger.network.Requests
@@ -14,13 +16,12 @@ import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.ConnectException
-import java.security.MessageDigest
 
 
 class UserInfoViewModel : ViewModel() {
 
-    private val _firstName = mutableStateOf("")
-    private val _lastName = mutableStateOf<String?>(null)
+    private val _firstName = mutableStateOf("Дмитрий")
+    private val _lastName = mutableStateOf<String?>("Лосев")
     private val _progress = mutableStateOf(false)
     private val _error = mutableStateOf("")
     private val _dialogState = mutableStateOf(false)
@@ -51,7 +52,7 @@ class UserInfoViewModel : ViewModel() {
     }
 
     fun registerUser(
-        phoneNumber: String,
+        data: LoginData,
         password: String,
         navController: NavController,
         context: Context
@@ -62,21 +63,18 @@ class UserInfoViewModel : ViewModel() {
             try {
                 _progress.value = true
                 if (_firstName.value.isBlank()) throw MessengerException("Введите имя!")
-                val digest = getDigest("$phoneNumber:$myRealm:$password")
-                println(digest.joinToString())
                 val user = User(
-                    phoneNumber = phoneNumber,
-                    password = digest,
-                    firstName = _firstName.value,
-                    lastName = _lastName.value,
-                    icon = _imageData.value?.let {
-                        context.contentResolver.openInputStream(it)?.readBytes()
-                    }
+                    data = data,
+                    DataUser(firstName = _firstName.value,
+                        lastName = _lastName.value,
+                        icon = _imageData.value?.let {
+                            context.contentResolver.openInputStream(it)?.readBytes()
+                        }
+                    )
                 )
-                println(user.toString())
                 val flag = Requests.registration(user = user)
                 if (flag) Requests.authorization(
-                    phoneNumber = phoneNumber,
+                    data = data,
                     password = password,
                     navController = navController
                 )
@@ -94,14 +92,4 @@ class UserInfoViewModel : ViewModel() {
                 _progress.value = false
             }
         }
-
-    companion object {
-
-        private fun getDigest(str: String): ByteArray =
-            MessageDigest.getInstance(digestAlgorithm).digest(str.toByteArray(Charsets.UTF_8))
-
-        private const val digestAlgorithm = "MD5"
-
-        private const val myRealm = "RestAPI"
-    }
 }

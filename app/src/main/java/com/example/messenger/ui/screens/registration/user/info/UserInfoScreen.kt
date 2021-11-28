@@ -5,29 +5,41 @@ package com.example.messenger.ui.screens.registration.user.info
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.Context
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.messenger.data.LoginData
 import com.example.messenger.ui.elements.alertdialog.AlertDialogType
 import com.example.messenger.ui.elements.progressbar.ProgressBar
 import com.example.messenger.ui.elements.screen.Screen
 import com.example.messenger.ui.elements.textfield.TextFieldScreen
 import com.example.messenger.ui.elements.textfield.TextFieldType
+import com.example.messenger.ui.theme.Black
+import com.example.messenger.ui.theme.TelegramBlue
 import com.skydoves.landscapist.glide.GlideImage
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun UserInfoScreen(
-    phoneNumber: String,
+    data: LoginData,
     password: String,
     viewModel: UserInfoViewModel,
     navController: NavController,
@@ -77,13 +89,18 @@ fun UserInfoScreen(
             .padding(horizontal = 32.dp, vertical = 16.dp)
     )
 
+    val size by animateDpAsState(
+        targetValue = if (imageData == null) 64.dp else 256.dp,
+        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
+    )
+
     Screen(
         alertDialogType = alertDialogType,
         focusManager = focusManager,
         onClick = {
             viewModel.registerUser(
+                data = data,
                 navController = navController,
-                phoneNumber = phoneNumber,
                 password = password,
                 context = context
             )
@@ -115,10 +132,24 @@ fun UserInfoScreen(
                     Box(
                         modifier = Modifier
                             .size(256.dp)
+                            .clip(shape = CircleShape)
+                            .border(
+                                width = 5.dp, brush = Brush.sweepGradient(
+                                    colors = listOf(
+                                        TelegramBlue, Black, TelegramBlue
+                                    )
+                                ), shape = CircleShape
+                            )
                             .clickable { selectImageLauncher.launch("image/*") },
                         contentAlignment = Alignment.Center
                     ) {
-                        GlideImage(imageModel = imageData)
+                        GlideImage(
+                            imageModel = imageData,
+                            modifier = Modifier
+                                .size(size = size)
+                                .clip(shape = CircleShape),
+                            error = Icons.Rounded.Image
+                        )
                     }
                 }
 
