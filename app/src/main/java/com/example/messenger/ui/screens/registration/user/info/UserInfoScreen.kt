@@ -8,12 +8,11 @@ import androidx.compose.Context
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -26,6 +25,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
+import coil.transform.CircleCropTransformation
+import com.example.messenger.R
 import com.example.messenger.data.LoginData
 import com.example.messenger.ui.elements.alertdialog.AlertDialogType
 import com.example.messenger.ui.elements.progressbar.ProgressBar
@@ -34,7 +36,6 @@ import com.example.messenger.ui.elements.textfield.TextFieldScreen
 import com.example.messenger.ui.elements.textfield.TextFieldType
 import com.example.messenger.ui.theme.Black
 import com.example.messenger.ui.theme.TelegramBlue
-import com.skydoves.landscapist.glide.GlideImage
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -61,6 +62,8 @@ fun UserInfoScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val imageData by remember { viewModel.imageData }
+
+    val icon: ByteArray? = null
 
     val selectImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -129,28 +132,28 @@ fun UserInfoScreen(
                         type = textFieldTypeLastName
                     )
 
-                    Box(
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Image(
+                        painter = rememberImagePainter(
+                            data = imageData?: R.drawable.avatar,
+                            builder = {
+                                crossfade(true)
+                                transformations(CircleCropTransformation())
+                            }),
+                        contentDescription = null,
                         modifier = Modifier
                             .size(256.dp)
                             .clip(shape = CircleShape)
                             .border(
-                                width = 5.dp, brush = Brush.sweepGradient(
+                                width = 2.dp, brush = Brush.sweepGradient(
                                     colors = listOf(
                                         TelegramBlue, Black, TelegramBlue
                                     )
                                 ), shape = CircleShape
                             )
-                            .clickable { selectImageLauncher.launch("image/*") },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        GlideImage(
-                            imageModel = imageData,
-                            modifier = Modifier
-                                .size(size = size)
-                                .clip(shape = CircleShape),
-                            error = Icons.Rounded.Image
-                        )
-                    }
+                            .clickable { selectImageLauncher.launch("image/*") }
+                    )
                 }
 
                 ProgressBar(

@@ -62,7 +62,7 @@ class NewPasswordViewModel : ViewModel() {
                         val flag = Requests.changePassword(changePassword = changePassword)
                         if (!flag) throw MessengerException("Не удалось сменить пароль, попробуйте ещё раз!")
                         else withContext(Dispatchers.Main) {
-                            navController.navigate(MainScreens.Chat.createRoute(data = data.copy(password = newPasswordDigest)))
+                            navController.navigate(MainScreens.Chat.createRoute())
                         }
                     }
                 }

@@ -7,10 +7,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.messenger.data.LoginData
 import com.example.messenger.exception.MessengerException
+import com.example.messenger.navigation.screens.MainScreens
 import com.example.messenger.network.Requests
 import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.ConnectException
 import java.security.MessageDigest
 
@@ -40,12 +42,17 @@ class EnterPasswordViewModel : ViewModel() {
             try {
                 _progress.value = true
                 if (_password.value.isBlank()) throw MessengerException("Введите пароль!")
-                Requests.authorization(
+                val flag = Requests.authorization(
                     data = LoginData(
                         phoneNumber = phoneNumber,
                         password = getDigest("$phoneNumber:$myRealm:${_password.value}")
-                    ), password = _password.value, navController = navController
+                    ), password = _password.value
                 )
+                if (!flag) throw MessengerException("Не удалось авторизоваться! Попробуйте ещё раз")
+                else withContext(Dispatchers.Main) {
+                    navController.backQueue.clear()
+                    navController.navigate(MainScreens.Chat.createRoute())
+                }
             } catch (e: MessengerException) {
                 _dialogState.value = true
                 _error.value = e.message!!

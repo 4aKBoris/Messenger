@@ -2,6 +2,8 @@ package com.example.messenger.ui.screens.registration.user.info
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -10,12 +12,16 @@ import androidx.navigation.NavController
 import com.example.messenger.data.DataUser
 import com.example.messenger.data.LoginData
 import com.example.messenger.data.User
+import com.example.messenger.data.UserRegistration
 import com.example.messenger.exception.MessengerException
+import com.example.messenger.navigation.screens.MainScreens
 import com.example.messenger.network.Requests
 import io.ktor.client.features.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.ConnectException
+import java.util.*
 
 
 class UserInfoViewModel : ViewModel() {
@@ -51,6 +57,7 @@ class UserInfoViewModel : ViewModel() {
         _error.value = ""
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun registerUser(
         data: LoginData,
         password: String,
@@ -63,21 +70,22 @@ class UserInfoViewModel : ViewModel() {
             try {
                 _progress.value = true
                 if (_firstName.value.isBlank()) throw MessengerException("Введите имя!")
-                val user = User(
-                    data = data,
-                    DataUser(firstName = _firstName.value,
-                        lastName = _lastName.value,
-                        icon = _imageData.value?.let {
-                            context.contentResolver.openInputStream(it)?.readBytes()
-                        }
-                    )
+                val icon = _imageData.value?.let {
+                    Base64.getEncoder()
+                        .encodeToString(context.contentResolver.openInputStream(it)?.readBytes())
+                }
+                val user = UserRegistration(
+                    User(
+                        data = data,
+                        DataUser(firstName = _firstName.value, lastName = _lastName.value)
+                    ),
+                    icon = icon
                 )
                 val flag = Requests.registration(user = user)
-                if (flag) Requests.authorization(
-                    data = data,
-                    password = password,
-                    navController = navController
-                )
+                if (flag) withContext(Dispatchers.Main) {
+                    navController.backQueue.clear()
+                    navController.navigate(MainScreens.Chat.createRoute())
+                }
                 else throw MessengerException("Не удалось зарегистривроаться! Попробуйте ещё раз")
             } catch (e: MessengerException) {
                 _dialogState.value = true

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
 import com.example.messenger.R
 import com.example.messenger.`typealias`.BoolFun
 import com.example.messenger.`typealias`.Fun
@@ -36,7 +37,6 @@ import com.example.messenger.ui.screens.main.chat.bar.bottom.BottomBar
 import com.example.messenger.ui.screens.main.chat.bar.top.TopBar
 import com.example.messenger.ui.screens.main.chat.drawer.Drawer
 import com.example.messenger.ui.theme.*
-import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,7 +46,7 @@ import java.time.format.DateTimeFormatter
 @SuppressLint("CoroutineCreationDuringComposition")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ChatScreen(data: LoginData, navController: NavController, viewModel: ChatViewModel) {
+fun ChatScreen(navController: NavController, viewModel: ChatViewModel) {
 
     val usersCount = viewModel.users.value.size
 
@@ -57,18 +57,18 @@ fun ChatScreen(data: LoginData, navController: NavController, viewModel: ChatVie
             FullUser(
                 id = -2, user = User(
                     data = LoginData(phoneNumber = "79000000000", password = byteArrayOf()),
-                    dataUser = DataUser(firstName = "Никита", lastName = "Архипов", icon = null)
+                    dataUser = DataUser(firstName = "Никита", lastName = "Архипов")
                 )
             )
         )
     }
 
-    LaunchedEffect(key1 = data.phoneNumber, block = {
+    LaunchedEffect(key1 = true, block = {
         withContext(Dispatchers.IO) {
-            user = viewModel.getUserInfo(data = data)
+            val userId = viewModel.getUserInfo()
             viewModel.getUsers()
             viewModel.getMessages()
-            viewModel.getMessage(id = user.id)
+            viewModel.getMessage()
         }
     })
 
@@ -114,7 +114,7 @@ fun ChatScreen(data: LoginData, navController: NavController, viewModel: ChatVie
         drawerContent = {
             Drawer(
                 user = user.user,
-                onDelete = { viewModel.onDelete(loginData = data, navController = navController) },
+                onDelete = { /*viewModel.onDelete(loginData = data, navController = navController)*/ },
                 onChangeData = {
                     viewModel.onDataChangeNavigation(
                         user = user.user,
@@ -123,7 +123,7 @@ fun ChatScreen(data: LoginData, navController: NavController, viewModel: ChatVie
                 },
                 onChangePassword = {
                     viewModel.onPasswordChangeNavigation(
-                        data = data,
+                        data = user.user.data,
                         navController = navController
                     )
                 },
@@ -220,13 +220,10 @@ private fun OtherMessage(message: String, time: String, user: ChatUser?) {
                 .background(color = TelegramBlue.copy(alpha = 0.8f)),
             contentAlignment = Alignment.Center
         ) {
-            if (user?.dataUser?.icon == null) Text(
-                text = user?.dataUser?.getInit() ?: "",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.W400
-            ) else
-                GlideImage(
-                    imageModel = user.dataUser.icon,
+                Image(
+                    painter = rememberImagePainter(
+                        data = "http://192.168.0.154:8081/icon?${user?.id?: 0}"
+                    ),
                     contentDescription = "Аватар пользователя",
                     modifier = Modifier
                         .size(48.dp)
@@ -346,7 +343,8 @@ private fun DialogInfo(dialogState: Boolean, count: Int, onCloseDialog: Fun) {
     Dialog(onDismissRequest = onCloseDialog) {
         Column(
             modifier = Modifier
-                .fillMaxWidth().clip(RoundedCornerShape(size = 16.dp))
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(size = 16.dp))
                 .background(color = White),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
@@ -449,7 +447,7 @@ private fun UserProfile(user: UserInfo) {
                 .background(color = TelegramBlue.copy(alpha = 0.8f)),
             contentAlignment = Alignment.Center
         ) {
-            if (user.dataUser.icon == null) Text(
+            /*if (user.dataUser.icon == null) Text(
                 text = user.dataUser.getInit(),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.W400
@@ -460,7 +458,7 @@ private fun UserProfile(user: UserInfo) {
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                )
+                )*/
         }
         UserName(
             name = user.dataUser.getName(),

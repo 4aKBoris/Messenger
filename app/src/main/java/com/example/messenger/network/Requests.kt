@@ -1,13 +1,8 @@
 package com.example.messenger.network
 
-import androidx.navigation.NavController
 import com.example.messenger.data.*
-import com.example.messenger.exception.MessengerException
-import com.example.messenger.navigation.screens.MainScreens
 import io.ktor.client.features.auth.*
 import io.ktor.client.features.auth.providers.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -27,12 +22,12 @@ object Requests {
         )
     }
 
-    suspend fun registration(user: User): Boolean {
+    suspend fun registration(user: UserRegistration): Boolean {
         val directory = "registration"
         return client.post(client = client.client, directory = directory, obj = user)
     }
 
-    suspend fun authorization(data: LoginData, password: String, navController: NavController) {
+    suspend fun authorization(data: LoginData, password: String): Boolean {
 
         val directory = "authorization"
 
@@ -48,20 +43,12 @@ object Requests {
                 }
             }
         }
-        val flag = client.get<Boolean>(client = client.client, directory = directory)
-        if (!flag) throw MessengerException("Не удалось авторизоваться! Попробуйте ещё раз")
-        else
-            withContext(Dispatchers.Main) {
-                navController.backQueue.clear()
-                navController.navigate(MainScreens.Chat.createRoute(data = data))
-            }
+        return client.post(obj = data, directory = directory, client = client.client)
     }
 
-    suspend fun getUserInfo(data: LoginData): FullUser {
+    suspend fun getUserInfo(): FullUser {
         val directory = "user"
         return client.get(
-            key = "data",
-            obj = Json.encodeToString(data),
             client = client.client,
             directory = directory
         )
@@ -83,12 +70,12 @@ object Requests {
         return client.get(client = client.client, directory = directory)
     }
 
-    suspend fun getMessage(): List<Message> {
+    suspend fun getMessage(id: Int): List<Message> {
         val directory = "message"
-        return client.get(client = client.client, directory = directory)
+        return client.get(key = "id", obj = id, client = client.client, directory = directory)
     }
 
-    suspend fun setMessage(message: Message): Boolean {
+    suspend fun setMessage(message: Message): Int {
         val directory = "message"
         return client.post(client = client.client, directory = directory, obj = message)
     }

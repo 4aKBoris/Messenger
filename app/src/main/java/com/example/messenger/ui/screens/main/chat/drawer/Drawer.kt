@@ -14,9 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.messenger.`typealias`.BoolFun
 import com.example.messenger.`typealias`.Fun
 import com.example.messenger.data.DataUser
@@ -24,7 +22,6 @@ import com.example.messenger.data.User
 import com.example.messenger.ui.screens.main.chat.drawer.alertdialog.DialogAbout
 import com.example.messenger.ui.screens.main.chat.drawer.alertdialog.DialogSettings
 import com.example.messenger.ui.theme.*
-import com.skydoves.landscapist.glide.GlideImage
 
 @Composable
 fun Drawer(
@@ -69,11 +66,11 @@ private fun Header(phoneNumber: String, data: DataUser) {
                 .background(color = TelegramBlue.copy(red = 0.8f)),
             contentAlignment = Alignment.Center
         ) {
-            if (data.icon == null) Text(
+            /*if (data.icon == null) Text(
                 text = data.getInit(),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.W400
-            ) else GlideImage(imageModel = data.icon)
+            ) else GlideImage(imageModel = data.icon)*/
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(

@@ -22,6 +22,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.toKotlinLocalDateTime
 import java.net.ConnectException
 import java.time.LocalDateTime
+import kotlin.math.max
 
 class ChatViewModel : ViewModel() {
 
@@ -45,6 +46,8 @@ class ChatViewModel : ViewModel() {
     val dialogAbout: State<Boolean> = _dialogAbout
     val dialogInfo: State<Boolean> = _dialogInfo
 
+    private var max = 0
+
     fun onChangeDialogSettings(state: Boolean) {
         _dialogSettings.value = state
     }
@@ -57,7 +60,7 @@ class ChatViewModel : ViewModel() {
         _dialogInfo.value = state
     }
 
-    suspend fun getUserInfo(data: LoginData) = Requests.getUserInfo(data = data)
+    suspend fun getUserInfo() = Requests.getUserInfo()
 
     fun onDelete(loginData: LoginData, navController: NavController) =
         viewModelScope.launch(Dispatchers.IO) {
@@ -90,7 +93,7 @@ class ChatViewModel : ViewModel() {
         navController: NavController,
         user: User
     ) {
-        navController.navigate(MainScreens.SettingsData.createRoute(user = user.copy(dataUser = user.dataUser.copy(icon = null))))
+        //navController.navigate(MainScreens.SettingsData.createRoute(user = user.copy(dataUser = user.dataUser.copy(icon = null))))
         onChangeDialogSettings(state = false)
     }
 
@@ -107,12 +110,11 @@ class ChatViewModel : ViewModel() {
         _scroll.value = !_scroll.value
     }
 
-    suspend fun getMessage(id: Int) {
+    suspend fun getMessage() {
         while (true) {
-            val message = Requests.getMessage().filterNot { it in _messages.value }
-                .filterNot { it.userId == id }
+            max = max(max, _messages.value.last().id!!)
+            val message = Requests.getMessage(max)
             _messages.value = _messages.value + message
-            _messages.value = _messages.value.sortedBy { it.dateTime }
             delay(5000L)
         }
     }
@@ -123,17 +125,16 @@ class ChatViewModel : ViewModel() {
             if (_message.value.isBlank()) throw MessengerException("Введите сообщение")
             if (_message.value.length > 255) throw MessengerException("Ваше сообщение слишком длинное! Ограничение 255 символов")
             val mess = Message(
+                null,
                 message = _message.value,
                 userId = id,
                 dateTime = LocalDateTime.now().toKotlinLocalDateTime()
             )
-            val flag = Requests.setMessage(message = mess)
-            if (!flag) throw MessengerException("Сообщение не удалось отправить, попробуйте ещё раз!")
-            else {
-                _messages.value = _messages.value + mess
-                _scroll.value = !_scroll.value
-                _message.value = ""
-            }
+            val idMessage = Requests.setMessage(message = mess)
+            max++
+            _messages.value = _messages.value + mess.copy(id = idMessage)
+            _scroll.value = !_scroll.value
+            _message.value = ""
         } catch (e: MessengerException) {
             _error.value = e.message ?: "Ошибка"
             _dialogState.value = true

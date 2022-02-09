@@ -5,15 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.messenger.data.DataUser
 import com.example.messenger.data.LoginData
-import com.example.messenger.data.User
 import com.example.messenger.exception.MessengerException
-import com.example.messenger.navigation.screens.MainScreens
-import com.example.messenger.network.Requests
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.net.ConnectException
 
 class DataSettingsViewModel : ViewModel() {
@@ -57,7 +52,7 @@ class DataSettingsViewModel : ViewModel() {
             Dispatchers.IO
         ) {
             try {
-                _progress.value = true
+                /*_progress.value = true
                 if (_firstName.value.isBlank()) throw MessengerException("Введите имя!")
                 val user = User(
                     data = data,
@@ -72,7 +67,7 @@ class DataSettingsViewModel : ViewModel() {
                 withContext(Dispatchers.Main) {
                     navController.backQueue.clear()
                     navController.navigate(MainScreens.Chat.createRoute(data = data))
-                }
+                }*/
             } catch (e: MessengerException) {
                 _dialogState.value = true
                 _error.value = e.message!!

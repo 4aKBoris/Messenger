@@ -3,7 +3,7 @@ package com.example.messenger.data
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LoginData(val phoneNumber: String, val password: ByteArray): java.io.Serializable {
+data class LoginData(val phoneNumber: String, val password: ByteArray) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

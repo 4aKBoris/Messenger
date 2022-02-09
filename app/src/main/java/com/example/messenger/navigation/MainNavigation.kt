@@ -11,7 +11,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.messenger.data.LoginData
 import com.example.messenger.data.User
 import com.example.messenger.navigation.screens.MainScreens
 import com.example.messenger.ui.screens.main.chat.ChatScreen
@@ -82,12 +81,8 @@ private fun NavGraphBuilder.addSettingsDataScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 private fun NavGraphBuilder.addChatScreen(navController: NavController, viewModel: ChatViewModel) {
-    composable(route = MainScreens.Chat.route) { backStackEntry ->
-        val jsonString = backStackEntry.arguments?.getString(DATA)
-        requireNotNull(jsonString) { "jsonString parameter wasn't found. Please make sure it's set!" }
-        val data = Json.decodeFromString<LoginData>(jsonString)
+    composable(route = MainScreens.Chat.route) {
         ChatScreen(
-            data = data,
             navController = navController,
             viewModel = viewModel
         )
