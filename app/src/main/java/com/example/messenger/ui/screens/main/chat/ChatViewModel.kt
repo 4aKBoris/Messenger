@@ -7,9 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.messenger.data.ChatUser
-import com.example.messenger.data.LoginData
+import com.example.messenger.data.FullUser
 import com.example.messenger.data.Message
+import com.example.messenger.data.MyMessage
 import com.example.messenger.data.User
 import com.example.messenger.exception.MessengerException
 import com.example.messenger.navigation.screens.MainScreens
@@ -19,17 +19,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.toKotlinLocalDateTime
 import java.net.ConnectException
-import java.time.LocalDateTime
-import kotlin.math.max
 
 class ChatViewModel : ViewModel() {
 
     private val _message = mutableStateOf("")
     private val _dialogState = mutableStateOf(false)
     private val _error = mutableStateOf("")
-    private val _users = mutableStateOf(listOf<ChatUser>())
+    private val _users = mutableStateOf(listOf<User>())
     private val _messages = mutableStateOf(listOf<Message>())
     private val _scroll = mutableStateOf(false)
     private val _dialogSettings = mutableStateOf(false)
@@ -39,14 +36,12 @@ class ChatViewModel : ViewModel() {
     val message: State<String> = _message
     val dialogState: State<Boolean> = _dialogState
     val error: State<String> = _error
-    val users: State<List<ChatUser>> = _users
+    val users: State<List<User>> = _users
     val messages: State<List<Message>> = _messages
     val scroll: State<Boolean> = _scroll
     val dialogSettings: State<Boolean> = _dialogSettings
     val dialogAbout: State<Boolean> = _dialogAbout
     val dialogInfo: State<Boolean> = _dialogInfo
-
-    private var max = 0
 
     fun onChangeDialogSettings(state: Boolean) {
         _dialogSettings.value = state
@@ -60,12 +55,20 @@ class ChatViewModel : ViewModel() {
         _dialogInfo.value = state
     }
 
-    suspend fun getUserInfo() = Requests.getUserInfo()
+    suspend fun getUserInfo(): FullUser? {
+        return try {
+            Requests.getUserInfo()
+        } catch (e: ConnectException) {
+            _dialogState.value = true
+            _error.value = "Не удалось устаность соединение с сервером! Попробуйте ещё раз"
+            null
+        }
+    }
 
-    fun onDelete(loginData: LoginData, navController: NavController) =
+    fun onDelete(navController: NavController) =
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val flag = Requests.deleteUser(data = loginData)
+                val flag = Requests.deleteUser()
                 if (!flag) throw MessengerException("Не удалось удалить профиль! Попробуйте ещё раз")
                 onChangeDialogSettings(false)
                 withContext(Dispatchers.Main) {
@@ -83,17 +86,15 @@ class ChatViewModel : ViewModel() {
 
     fun onPasswordChangeNavigation(
         navController: NavController,
-        data: LoginData
     ) {
-        navController.navigate(PasswordScreens.OldPassword.createRoute(data = data))
+        navController.navigate(PasswordScreens.OldPassword.createRoute())
         onChangeDialogSettings(state = false)
     }
 
     fun onDataChangeNavigation(
         navController: NavController,
-        user: User
     ) {
-        //navController.navigate(MainScreens.SettingsData.createRoute(user = user.copy(dataUser = user.dataUser.copy(icon = null))))
+        navController.navigate(MainScreens.SettingsData.createRoute())
         onChangeDialogSettings(state = false)
     }
 
@@ -102,42 +103,52 @@ class ChatViewModel : ViewModel() {
     }
 
     suspend fun getUsers() {
-        _users.value = Requests.getUsers()
+        try {
+            _users.value = Requests.getUsers()
+        } catch (e: ConnectException) {
+            _dialogState.value = true
+            _error.value = "Не удалось устаность соединение с сервером! Попробуйте ещё раз"
+        }
     }
 
     suspend fun getMessages() {
-        _messages.value = Requests.getMessages()
-        _scroll.value = !_scroll.value
+        try {
+            _messages.value = Requests.getMessages()
+            _scroll.value = !_scroll.value
+        } catch (e: ConnectException) {
+            _dialogState.value = true
+            _error.value = "Не удалось устаность соединение с сервером! Попробуйте ещё раз"
+        }
     }
 
     suspend fun getMessage() {
         while (true) {
-            max = max(max, _messages.value.last().id!!)
-            val message = Requests.getMessage(max)
-            _messages.value = _messages.value + message
-            delay(5000L)
+            try {
+                val message = Requests.getMessage(_messages.value.last().id)
+                _messages.value = _messages.value + message
+            } catch (e: ConnectException) {
+                _dialogState.value = true
+                _error.value = "Не удалось устаность соединение с сервером! Попробуйте ещё раз"
+            } finally {
+                delay(5000L)
+            }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun onSendClick(id: Int) = viewModelScope.launch(Dispatchers.IO) {
+    fun onSendClick() = viewModelScope.launch(Dispatchers.IO) {
         try {
             if (_message.value.isBlank()) throw MessengerException("Введите сообщение")
             if (_message.value.length > 255) throw MessengerException("Ваше сообщение слишком длинное! Ограничение 255 символов")
-            val mess = Message(
-                null,
-                message = _message.value,
-                userId = id,
-                dateTime = LocalDateTime.now().toKotlinLocalDateTime()
-            )
-            val idMessage = Requests.setMessage(message = mess)
-            max++
-            _messages.value = _messages.value + mess.copy(id = idMessage)
+            Requests.setMessage(message = MyMessage(_message.value))
             _scroll.value = !_scroll.value
             _message.value = ""
         } catch (e: MessengerException) {
             _error.value = e.message ?: "Ошибка"
             _dialogState.value = true
+        } catch (e: ConnectException) {
+            _dialogState.value = true
+            _error.value = "Не удалось устаность соединение с сервером! Попробуйте ещё раз"
         }
     }
 

@@ -1,11 +1,12 @@
 package com.example.messenger.ui.screens.authorization.enter.password
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.messenger.data.LoginData
 import com.example.messenger.exception.MessengerException
 import com.example.messenger.navigation.screens.MainScreens
 import com.example.messenger.network.Requests
@@ -15,10 +16,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.ConnectException
 import java.security.MessageDigest
+import java.util.*
 
 class EnterPasswordViewModel : ViewModel() {
 
-    private val _password = mutableStateOf("127485ldaLDA")
+    private val _password = mutableStateOf("")
     private val _progress = mutableStateOf(false)
     private val _error = mutableStateOf("")
     private val _dialogState = mutableStateOf(false)
@@ -37,19 +39,16 @@ class EnterPasswordViewModel : ViewModel() {
         _error.value = ""
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun checkPassword(navController: NavController, phoneNumber: String) =
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _progress.value = true
                 if (_password.value.isBlank()) throw MessengerException("Введите пароль!")
-                val flag = Requests.authorization(
-                    data = LoginData(
-                        phoneNumber = phoneNumber,
-                        password = getDigest("$phoneNumber:$myRealm:${_password.value}")
-                    ), password = _password.value
-                )
-                if (!flag) throw MessengerException("Не удалось авторизоваться! Попробуйте ещё раз")
-                else withContext(Dispatchers.Main) {
+                Requests.authorization(name = phoneNumber, password = getString(getDigest(_password.value)))
+                println(phoneNumber)
+                Requests.check()
+                withContext(Dispatchers.Main) {
                     navController.backQueue.clear()
                     navController.navigate(MainScreens.Chat.createRoute())
                 }
@@ -68,12 +67,12 @@ class EnterPasswordViewModel : ViewModel() {
         }
 
     companion object {
-
         private fun getDigest(str: String): ByteArray =
             MessageDigest.getInstance(digestAlgorithm).digest(str.toByteArray(Charsets.UTF_8))
 
-        private const val digestAlgorithm = "MD5"
+        @RequiresApi(Build.VERSION_CODES.O)
+        private fun getString(password: ByteArray) = Base64.getEncoder().encodeToString(password)
 
-        private const val myRealm = "RestAPI"
+        private const val digestAlgorithm = "SHA-256"
     }
 }

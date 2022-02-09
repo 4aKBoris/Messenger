@@ -8,6 +8,7 @@ import androidx.navigation.NavController
 import com.example.messenger.exception.MessengerException
 import com.example.messenger.navigation.screens.RegistrationScreens
 import com.example.messenger.network.Requests
+import io.ktor.client.call.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -18,7 +19,7 @@ class RegisterViewModel : ViewModel() {
     private val _progress = mutableStateOf(false)
     private val _error = mutableStateOf("")
     private val _dialogState = mutableStateOf(false)
-    private val _phoneNumber = mutableStateOf("+79255696413")
+    private val _phoneNumber = mutableStateOf("")
     private val _importantError = mutableStateOf(false)
 
     val progress: State<Boolean> = _progress
@@ -43,8 +44,8 @@ class RegisterViewModel : ViewModel() {
         try {
             _progress.value = true
             if (_phoneNumber.value.length != 12) throw MessengerException("Телефонный номер введён некорректно!")
-            val check = Requests.checkPhoneNumber(phoneNumber = _phoneNumber.value.removePrefix("+"))
-            check(check = check, navController = navController)
+            val response = Requests.checkPhoneNumber(phoneNumber = _phoneNumber.value.removePrefix("+"))
+            check(status = response.receive(), navController = navController)
         } catch (e: MessengerException) {
             _dialogState.value = true
             _error.value = e.message!!
@@ -58,16 +59,16 @@ class RegisterViewModel : ViewModel() {
     }
 
     private suspend fun check(
-        check: Boolean,
+        status: Boolean,
         navController: NavController
     ) {
-        when (check) {
+        when (status) {
             true -> {
                 _dialogState.value = true
                 _error.value = "На данный телефонный номер аккаунт уже зарегистрирован!"
                 _importantError.value = true
             }
-            false -> withContext(Dispatchers.Main) {
+            else -> withContext(Dispatchers.Main) {
                 navController.navigate(RegistrationScreens.CreatePassword.createRoute(_phoneNumber.value.removePrefix("+")))
             }
         }

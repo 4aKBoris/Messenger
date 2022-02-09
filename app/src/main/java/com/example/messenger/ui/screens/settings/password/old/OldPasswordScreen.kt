@@ -2,6 +2,8 @@
 
 package com.example.messenger.ui.screens.settings.password.old
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,14 +20,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.messenger.data.LoginData
 import com.example.messenger.ui.elements.screen.SettingsScreen
 import com.example.messenger.ui.elements.textfield.TextFieldScreen
 import com.example.messenger.ui.elements.textfield.TextFieldType
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun OldPasswordScreen(data: LoginData, viewModel: OldPasswordViewModel, navController: NavController) {
+fun OldPasswordScreen(viewModel: OldPasswordViewModel, navController: NavController) {
 
     val focusManager = LocalFocusManager.current
 
@@ -55,7 +57,7 @@ fun OldPasswordScreen(data: LoginData, viewModel: OldPasswordViewModel, navContr
         closeDialog = viewModel::onCloseDialog,
         imageVector = Icons.Rounded.ArrowForward,
         focusManager = focusManager,
-        onClick = { viewModel.checkPassword(navController = navController, data = data) }
+        onClick = { viewModel.checkPassword(navController = navController) }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             TextFieldScreen(

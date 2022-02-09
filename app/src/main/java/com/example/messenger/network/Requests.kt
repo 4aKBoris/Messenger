@@ -1,10 +1,8 @@
 package com.example.messenger.network
 
 import com.example.messenger.data.*
-import io.ktor.client.features.auth.*
-import io.ktor.client.features.auth.providers.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import io.ktor.client.call.*
+import io.ktor.client.statement.*
 
 object Requests {
 
@@ -12,91 +10,105 @@ object Requests {
 
     private const val PhoneNumber = "phoneNumber"
 
-    suspend fun checkPhoneNumber(phoneNumber: String): Boolean {
+    suspend fun checkPhoneNumber(phoneNumber: String): HttpResponse {
         val directory = "checkPhoneNumber"
-        return client.get(
-            client = client.client,
-            directory = directory,
-            key = PhoneNumber,
-            obj = phoneNumber
-        )
+        return client.get(directory = directory, key = PhoneNumber, value = phoneNumber)
     }
 
-    suspend fun registration(user: UserRegistration): Boolean {
+    suspend fun registration(user: UserRegistration): HttpResponse {
         val directory = "registration"
-        return client.post(client = client.client, directory = directory, obj = user)
+        return client.post(directory = directory, value = user)
     }
 
-    suspend fun authorization(data: LoginData, password: String): Boolean {
-
-        val directory = "authorization"
-
-        client.client = client.client.config {
-            install(Auth) {
-                digest {
-
-                    realm = "RestAPI"
-
-                    credentials {
-                        DigestAuthCredentials(username = data.phoneNumber, password = password)
-                    }
-                }
-            }
-        }
-        return client.post(obj = data, directory = directory, client = client.client)
+    fun authorization(name: String, password: String) {
+        client.authorization(name = name, password = password)
     }
 
     suspend fun getUserInfo(): FullUser {
         val directory = "user"
-        return client.get(
+        val response = client.get(directory = directory)
+        return response.receive()
+    }
+
+    /*suspend fun getIcon(id: Int): ByteArray? {
+        val directory = "icon"
+        val icon = client.get<ByteArray>(
+            key = "data",
+            obj = Json.encodeToString(data),
             client = client.client,
             directory = directory
         )
-    }
-
-    suspend fun getIcon(data: LoginData): ByteArray? {
-        val directory = "icon"
-        val icon = client.get<ByteArray>(key = "data", obj = Json.encodeToString(data), client = client.client, directory = directory)
         return if (icon.isEmpty()) null else icon
-    }
+    }*/
 
-    suspend fun getUsers(): List<ChatUser> {
+    suspend fun getUsers(): List<User> {
         val directory = "chatUsers"
-        return client.get(client = client.client, directory = directory)
+        val response = client.get(directory = directory)
+        return response.receive()
     }
 
     suspend fun getMessages(): List<Message> {
         val directory = "messages"
-        return client.get(client = client.client, directory = directory)
+        val response = client.get(directory = directory)
+        return response.receive()
     }
 
     suspend fun getMessage(id: Int): List<Message> {
         val directory = "message"
-        return client.get(key = "id", obj = id, client = client.client, directory = directory)
+        val response = client.get(key = "id", value = id, directory = directory)
+        return response.receive()
     }
 
-    suspend fun setMessage(message: Message): Int {
+    suspend fun exit(): Boolean {
+        val directory = "exit"
+        val response = client.get(directory = directory)
+        return response.receive()
+    }
+
+    suspend fun check(): Boolean {
+        val directory = "check"
+        val response = client.get(directory = directory)
+        return response.receive()
+    }
+
+    suspend fun setMessage(message: MyMessage) {
         val directory = "message"
-        return client.post(client = client.client, directory = directory, obj = message)
+        client.post(directory = directory, value = message)
     }
 
-    suspend fun deleteUser(data: LoginData): Boolean {
+    suspend fun deleteUser(): Boolean {
         val directory = "user"
-        return client.delete(client = client.client, directory = directory, obj = data)
+        val response = client.delete(directory = directory)
+        return response.receive()
     }
 
-    suspend fun changePassword(changePassword: ChangePassword): Boolean {
-        val directory = "user/password"
-        return client.put(client = client.client, directory = directory, obj = changePassword)
+    suspend fun updatePassword(password: Password): Boolean {
+        val directory = "password"
+        val response = client.put(directory = directory, value = password)
+        return response.receive()
     }
 
-    suspend fun changeData(data: User): Boolean {
-        val directory = "user/info"
-        return client.put(client = client.client, directory = directory, obj = data)
+    suspend fun checkPassword(password: String): Boolean {
+        val directory = "password"
+        val response = client.get(directory = directory, key = "password", value = password)
+        return response.receive()
     }
 
-    suspend fun getUsersInfo(): List<UserInfo> {
-        val directory = "user/info"
-        return client.get(client = client.client, directory = directory)
+    suspend fun updateName(name: Name): Boolean {
+        val directory = "user"
+        val response = client.put(directory = directory, value = name)
+        return response.receive()
+    }
+
+    suspend fun updateIcon(Icon: Icon): Boolean {
+        val directory = "icon"
+        val response = client.put(directory = directory, value = Icon)
+        return response.receive()
+    }
+
+    suspend fun getRegistrationData(id: Int): String {
+        val directory = "user/data"
+        val response = client.get(directory = directory, value = id, key = "id")
+        return response.readText()
     }
 }

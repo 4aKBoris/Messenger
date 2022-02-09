@@ -2,12 +2,11 @@
 
 package com.example.messenger.ui.screens.registration.user.info
 
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.Context
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,7 +27,6 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import coil.transform.CircleCropTransformation
 import com.example.messenger.R
-import com.example.messenger.data.LoginData
 import com.example.messenger.ui.elements.alertdialog.AlertDialogType
 import com.example.messenger.ui.elements.progressbar.ProgressBar
 import com.example.messenger.ui.elements.screen.Screen
@@ -37,10 +35,11 @@ import com.example.messenger.ui.elements.textfield.TextFieldType
 import com.example.messenger.ui.theme.Black
 import com.example.messenger.ui.theme.TelegramBlue
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun UserInfoScreen(
-    data: LoginData,
+    phoneNumber: String,
     password: String,
     viewModel: UserInfoViewModel,
     navController: NavController,
@@ -62,8 +61,6 @@ fun UserInfoScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val imageData by remember { viewModel.imageData }
-
-    val icon: ByteArray? = null
 
     val selectImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -92,19 +89,14 @@ fun UserInfoScreen(
             .padding(horizontal = 32.dp, vertical = 16.dp)
     )
 
-    val size by animateDpAsState(
-        targetValue = if (imageData == null) 64.dp else 256.dp,
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
-    )
-
     Screen(
         alertDialogType = alertDialogType,
         focusManager = focusManager,
         onClick = {
             viewModel.registerUser(
-                data = data,
-                navController = navController,
+                phoneNumber = phoneNumber,
                 password = password,
+                navController = navController,
                 context = context
             )
         }

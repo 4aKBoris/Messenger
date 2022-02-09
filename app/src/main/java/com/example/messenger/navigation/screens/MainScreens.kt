@@ -1,10 +1,5 @@
 package com.example.messenger.navigation.screens
 
-import com.example.messenger.data.User
-import com.example.messenger.navigation.USER
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
 sealed class MainScreens : Screen {
 
     object Welcome : MainScreens() {
@@ -55,10 +50,9 @@ sealed class MainScreens : Screen {
         override val name: String
             get() = "settingsData"
         override val route: String
-            get() = "$USER/{$USER}/$name"
+            get() = name
 
-        fun createRoute(user: User) =
-            "$USER/${Json.encodeToString(user)}/$name"
+        fun createRoute() = name
     }
 
     object SettingsPassword: MainScreens() {

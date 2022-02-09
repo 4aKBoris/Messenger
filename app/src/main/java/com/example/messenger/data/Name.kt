@@ -3,4 +3,4 @@ package com.example.messenger.data
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ChatUser(val id: Int, val dataUser: DataUser)
+data class Name(val firstName: String, val lastName: String?)

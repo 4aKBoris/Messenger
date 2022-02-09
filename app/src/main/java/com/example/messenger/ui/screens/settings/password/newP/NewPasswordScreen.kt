@@ -2,6 +2,8 @@
 
 package com.example.messenger.ui.screens.settings.password.newP
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NavigateNext
@@ -16,17 +18,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.messenger.data.LoginData
 import com.example.messenger.ui.elements.screen.SettingsScreen
 import com.example.messenger.ui.elements.textfield.TextFieldScreen
 import com.example.messenger.ui.elements.textfield.TextFieldType
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun NewPasswordScreen(
-    data: LoginData,
     viewModel: NewPasswordViewModel,
-    navController: NavController
+    navController: NavController,
+    oldPassword: String
 ) {
 
     val focusManager = LocalFocusManager.current
@@ -70,7 +72,7 @@ fun NewPasswordScreen(
         onClick = {
             viewModel.checkPassword(
                 navController = navController,
-                data = data
+                oldPassword = oldPassword
             )
         },
         dialogState = dialogState,

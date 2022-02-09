@@ -1,5 +1,6 @@
 package com.example.messenger.ui.screens.main.chat.drawer
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,17 +16,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberImagePainter
+import coil.transform.CircleCropTransformation
 import com.example.messenger.`typealias`.BoolFun
 import com.example.messenger.`typealias`.Fun
-import com.example.messenger.data.DataUser
-import com.example.messenger.data.User
+import com.example.messenger.data.FullUser
+import com.example.messenger.network.HttpClient
 import com.example.messenger.ui.screens.main.chat.drawer.alertdialog.DialogAbout
 import com.example.messenger.ui.screens.main.chat.drawer.alertdialog.DialogSettings
 import com.example.messenger.ui.theme.*
 
 @Composable
 fun Drawer(
-    user: User,
+    user: FullUser,
     onDelete: Fun,
     onChangeData: Fun,
     onChangePassword: Fun,
@@ -35,7 +38,7 @@ fun Drawer(
     onChangeDialogAbout: BoolFun
 ) {
 
-    Header(phoneNumber = user.data.phoneNumber, data = user.dataUser)
+    Header(user = user)
 
     Body(
         onDelete,
@@ -50,7 +53,7 @@ fun Drawer(
 }
 
 @Composable
-private fun Header(phoneNumber: String, data: DataUser) {
+private fun Header(user: FullUser) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -58,27 +61,28 @@ private fun Header(phoneNumber: String, data: DataUser) {
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Top
     ) {
-        Box(
+        Image(
+            painter = rememberImagePainter(
+                data = "${HttpClient.IpAddress}/icon?id=${user.id}",
+                builder = {
+                    crossfade(true)
+                    transformations(CircleCropTransformation())
+                }
+            ),
+            contentDescription = "Аватар пользователя",
             modifier = Modifier
                 .padding(all = 32.dp)
                 .size(size = 96.dp)
                 .clip(CircleShape)
-                .background(color = TelegramBlue.copy(red = 0.8f)),
-            contentAlignment = Alignment.Center
-        ) {
-            /*if (data.icon == null) Text(
-                text = data.getInit(),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.W400
-            ) else GlideImage(imageModel = data.icon)*/
-        }
+                .background(color = TelegramBlue.copy(red = 0.8f))
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "${data.firstName} ${data.lastName ?: ""}",
+            text = "${user.firstName} ${user.lastName ?: ""}",
             modifier = Modifier.padding(start = 32.dp)
         )
         Text(
-            text = getPhoneNumber(phoneNumber = phoneNumber),
+            text = getPhoneNumber(phoneNumber = user.phoneNumber),
             modifier = Modifier.padding(start = 32.dp),
             style = Typography.body2,
             color = LightGray

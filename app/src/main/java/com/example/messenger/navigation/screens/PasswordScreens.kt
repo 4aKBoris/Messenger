@@ -1,9 +1,6 @@
 package com.example.messenger.navigation.screens
 
-import com.example.messenger.data.LoginData
-import com.example.messenger.navigation.DATA
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import com.example.messenger.navigation.PASSWORD
 
 sealed class PasswordScreens: Screen {
 
@@ -13,10 +10,9 @@ sealed class PasswordScreens: Screen {
             get() = "oldPassword"
 
         override val route: String
-            get() = "$DATA/{$DATA}/$name"
+            get() = name
 
-        fun createRoute(data: LoginData) =
-            "$DATA/${Json.encodeToString(data)}/$name"
+        fun createRoute() = name
     }
 
     object NewPassword: Screen {
@@ -25,10 +21,10 @@ sealed class PasswordScreens: Screen {
             get() = "newPassword"
 
         override val route: String
-            get() = "$DATA/{$DATA}/$name"
+            get() = "$PASSWORD/{$PASSWORD}/$name"
 
-        fun createRoute(data: LoginData) =
-            "$DATA/${Json.encodeToString(data)}/$name"
+        fun createRoute(password: String) =
+            "$PASSWORD/$password/$name"
     }
 
 }
