@@ -11,16 +11,12 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.messenger.data.LoginData
-import com.example.messenger.data.User
 import com.example.messenger.navigation.screens.MainScreens
 import com.example.messenger.ui.screens.main.chat.ChatScreen
 import com.example.messenger.ui.screens.main.chat.ChatViewModel
 import com.example.messenger.ui.screens.main.welcome.WelcomeScreen
 import com.example.messenger.ui.screens.settings.data.DataSettingsScreen
 import com.example.messenger.ui.screens.settings.data.DataSettingsViewModel
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -60,6 +56,7 @@ private fun NavGraphBuilder.addWelcomeScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 private fun NavGraphBuilder.addSettingsDataScreen(
     context: Context,
     navController: NavController,
@@ -67,12 +64,8 @@ private fun NavGraphBuilder.addSettingsDataScreen(
 ) {
     composable(
         route = MainScreens.SettingsData.route
-    ) { backStackEntry ->
-        val jsonString = backStackEntry.arguments?.getString(USER)
-        requireNotNull(jsonString) { "jsonString  parameter wasn't found. Please make sure it's set!" }
-        val user = Json.decodeFromString<User>(jsonString)
+    ) {
         DataSettingsScreen(
-            user = user,
             context = context,
             navController = navController,
             viewModel = viewModel
@@ -82,12 +75,8 @@ private fun NavGraphBuilder.addSettingsDataScreen(
 
 @RequiresApi(Build.VERSION_CODES.O)
 private fun NavGraphBuilder.addChatScreen(navController: NavController, viewModel: ChatViewModel) {
-    composable(route = MainScreens.Chat.route) { backStackEntry ->
-        val jsonString = backStackEntry.arguments?.getString(DATA)
-        requireNotNull(jsonString) { "jsonString parameter wasn't found. Please make sure it's set!" }
-        val data = Json.decodeFromString<LoginData>(jsonString)
+    composable(route = MainScreens.Chat.route) {
         ChatScreen(
-            data = data,
             navController = navController,
             viewModel = viewModel
         )
@@ -96,5 +85,4 @@ private fun NavGraphBuilder.addChatScreen(navController: NavController, viewMode
 
 const val PHONE_NUMBER = "phoneNumber"
 const val PASSWORD = "password"
-const val USER = "user"
 const val DATA = "data"

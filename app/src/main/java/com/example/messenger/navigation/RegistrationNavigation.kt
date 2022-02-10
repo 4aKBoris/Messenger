@@ -1,13 +1,14 @@
 package com.example.messenger.navigation
 
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.Context
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.example.messenger.data.LoginData
 import com.example.messenger.navigation.screens.MainScreens
 import com.example.messenger.navigation.screens.RegistrationScreens
 import com.example.messenger.ui.screens.registration.create.password.CreatePasswordScreen
@@ -16,9 +17,8 @@ import com.example.messenger.ui.screens.registration.register.RegisterScreen
 import com.example.messenger.ui.screens.registration.register.RegisterViewModel
 import com.example.messenger.ui.screens.registration.user.info.UserInfoScreen
 import com.example.messenger.ui.screens.registration.user.info.UserInfoViewModel
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.addRegistrationGraph(
     navController: NavController,
     activity: ComponentActivity
@@ -64,19 +64,19 @@ private fun NavGraphBuilder.addCreatePasswordScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 private fun NavGraphBuilder.addUserInfoScreen(
     navController: NavController,
     viewModel: UserInfoViewModel,
     context: Context
 ) {
     composable(route = RegistrationScreens.UserInfo.route) { backStackEntry ->
-        val jsonString = backStackEntry.arguments?.getString(DATA)
+        val phoneNumber = backStackEntry.arguments?.getString(PHONE_NUMBER)
         val password = backStackEntry.arguments?.getString(PASSWORD)
-        requireNotNull(jsonString) { "jsonString parameter wasn't found. Please make sure it's set!" }
+        requireNotNull(phoneNumber) { "phoneNumber parameter wasn't found. Please make sure it's set!" }
         requireNotNull(password) { "password parameter wasn't found. Please make sure it's set!" }
-        val data = Json.decodeFromString<LoginData>(jsonString)
         UserInfoScreen(
-            data = data,
+            phoneNumber = phoneNumber,
             password = password,
             navController = navController,
             viewModel = viewModel,

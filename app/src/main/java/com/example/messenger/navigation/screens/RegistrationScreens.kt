@@ -1,11 +1,7 @@
 package com.example.messenger.navigation.screens
 
-import com.example.messenger.data.LoginData
-import com.example.messenger.navigation.DATA
 import com.example.messenger.navigation.PASSWORD
 import com.example.messenger.navigation.PHONE_NUMBER
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 sealed class RegistrationScreens: Screen {
 
@@ -26,10 +22,10 @@ sealed class RegistrationScreens: Screen {
             get() = "userInfo"
 
         override val route: String
-            get() = "$PASSWORD/{$PASSWORD}/$DATA/{$DATA}/$name"
+            get() = "$PHONE_NUMBER/{$PHONE_NUMBER}/$PASSWORD/{$PASSWORD}/$name"
 
-        fun createRoute(password: String, data: LoginData) =
-            "$PASSWORD/$password/$DATA/${Json.encodeToString(data)}/$name"
+        fun createRoute(phoneNumber: String, password: String) =
+            "$PHONE_NUMBER/$phoneNumber/$PASSWORD/$password/$name"
     }
 
     object CreatePassword : RegistrationScreens() {

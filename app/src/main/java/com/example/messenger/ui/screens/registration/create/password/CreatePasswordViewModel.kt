@@ -4,14 +4,12 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import com.example.messenger.data.LoginData
 import com.example.messenger.navigation.screens.RegistrationScreens
-import java.security.MessageDigest
 
 class CreatePasswordViewModel : ViewModel() {
 
-    private val _password1 = mutableStateOf("127485ldaLDA")
-    private val _password2 = mutableStateOf("127485ldaLDA")
+    private val _password1 = mutableStateOf("")
+    private val _password2 = mutableStateOf("")
     private val _error = mutableStateOf("")
     private val _dialogState = mutableStateOf(false)
 
@@ -39,7 +37,6 @@ class CreatePasswordViewModel : ViewModel() {
     }
 
     fun checkPassword(phoneNumber: String, navController: NavController) {
-        println(phoneNumber)
         when (true) {
             _password1.value.isBlank() -> onOpenDialog("Введите пароль!")
             _password1.value != _password2.value -> onOpenDialog("Введёные пароли не совпадают!")
@@ -48,24 +45,13 @@ class CreatePasswordViewModel : ViewModel() {
             else -> navController.navigate(
                 RegistrationScreens.UserInfo.createRoute(
                     password = _password1.value,
-                    data = LoginData(
-                        phoneNumber = phoneNumber,
-                        password = getDigest("$phoneNumber:$myRealm:${_password1.value}")
-                    )
+                    phoneNumber = phoneNumber
                 )
             )
         }
     }
 
     companion object {
-
         private val regBigSymbol = Regex("[A-Z]+")
-
-        private fun getDigest(str: String): ByteArray =
-            MessageDigest.getInstance(digestAlgorithm).digest(str.toByteArray(Charsets.UTF_8))
-
-        private const val digestAlgorithm = "MD5"
-
-        private const val myRealm = "RestAPI"
     }
 }

@@ -2,19 +2,19 @@
 
 package com.example.messenger.ui.screens.settings.data
 
-import android.content.Context
+import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
+import androidx.annotation.RequiresApi
+import androidx.compose.Context
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.rounded.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,7 +28,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.messenger.data.User
+import coil.compose.rememberImagePainter
+import coil.transform.CircleCropTransformation
+import com.example.messenger.R
+import com.example.messenger.network.HttpClient
 import com.example.messenger.network.Requests
 import com.example.messenger.ui.elements.progressbar.ProgressBar
 import com.example.messenger.ui.elements.screen.SettingsScreen
@@ -36,25 +39,26 @@ import com.example.messenger.ui.elements.textfield.TextFieldScreen
 import com.example.messenger.ui.elements.textfield.TextFieldType
 import com.example.messenger.ui.theme.Black
 import com.example.messenger.ui.theme.TelegramBlue
-import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import java.net.ConnectException
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DataSettingsScreen(
-    user: User,
     viewModel: DataSettingsViewModel,
     navController: NavController,
     context: Context
 ) {
 
-    LaunchedEffect(key1 = user) {
-        withContext(Dispatchers.IO) {
-            viewModel.onChangeImageData(Requests.getIcon(data = user.data))
+    LaunchedEffect(key1 = true) {
+        try {
+            val user = Requests.getUserInfo()
+            viewModel.onChangeImageData(Uri.parse("${HttpClient.IpAddress}/icon?id=${user.id}"))
+            viewModel.onChangeFirstName(user.firstName)
+            viewModel.onChangeLastName(user.lastName)
+        } catch (e: ConnectException) {
+            viewModel.onOpenDialog("Не удалось устаность соединение с сервером! Попробуйте ещё раз")
         }
-        viewModel.onChangeFirstName(user.dataUser.firstName)
-        viewModel.onChangeLastName(user.dataUser.lastName ?: "")
     }
 
     val focusManager = LocalFocusManager.current
@@ -75,9 +79,7 @@ fun DataSettingsScreen(
 
     val selectImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            viewModel.onChangeImageData(
-                if (uri == null) null else context.contentResolver.openInputStream(uri)?.readBytes()
-            )
+            viewModel.onChangeImageData(uri = uri)
         }
 
     val textFieldTypeFirstName = TextFieldType.Ordinary(
@@ -96,11 +98,6 @@ fun DataSettingsScreen(
             .padding(horizontal = 32.dp, vertical = 16.dp)
     )
 
-    val size by animateDpAsState(
-        targetValue = if (imageData == null) 64.dp else 256.dp,
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
-    )
-
     SettingsScreen(
         focusManager = focusManager,
         dialogState = dialogState,
@@ -108,10 +105,7 @@ fun DataSettingsScreen(
         closeDialog = viewModel::onCloseDialog,
         imageVector = Icons.Filled.Check,
         onClick = {
-            viewModel.updateUser(
-                data = user.data,
-                navController = navController
-            )
+            viewModel.updateUser(navController = navController, context = context)
         }
     ) {
         Column(
@@ -137,28 +131,26 @@ fun DataSettingsScreen(
                         type = textFieldTypeLastName
                     )
 
-                    Box(
+                    Image(
+                        painter = rememberImagePainter(
+                            data = imageData ?: R.drawable.avatar,
+                            builder = {
+                                crossfade(true)
+                                transformations(CircleCropTransformation())
+                            }),
+                        contentDescription = null,
                         modifier = Modifier
                             .size(256.dp)
                             .clip(shape = CircleShape)
                             .border(
-                                width = 5.dp, brush = Brush.sweepGradient(
+                                width = 2.dp, brush = Brush.sweepGradient(
                                     colors = listOf(
                                         TelegramBlue, Black, TelegramBlue
                                     )
                                 ), shape = CircleShape
                             )
-                            .clickable { selectImageLauncher.launch("image/*") },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        GlideImage(
-                            imageModel = imageData,
-                            modifier = Modifier
-                                .size(size = size)
-                                .clip(shape = CircleShape),
-                            error = Icons.Rounded.Image
-                        )
-                    }
+                            .clickable { selectImageLauncher.launch("image/*") }
+                    )
                 }
 
                 ProgressBar(

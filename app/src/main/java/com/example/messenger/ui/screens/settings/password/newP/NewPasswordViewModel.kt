@@ -1,12 +1,13 @@
 package com.example.messenger.ui.screens.settings.password.newP
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.messenger.data.ChangePassword
-import com.example.messenger.data.LoginData
+import com.example.messenger.data.Password
 import com.example.messenger.exception.MessengerException
 import com.example.messenger.navigation.screens.MainScreens
 import com.example.messenger.network.Requests
@@ -15,11 +16,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.ConnectException
 import java.security.MessageDigest
+import java.util.*
 
 class NewPasswordViewModel : ViewModel() {
 
-    private val _password1 = mutableStateOf("127485ldaLD")
-    private val _password2 = mutableStateOf("127485ldaLD")
+    private val _password1 = mutableStateOf("")
+    private val _password2 = mutableStateOf("")
     private val _error = mutableStateOf("")
     private val _dialogState = mutableStateOf(false)
     private val _progress = mutableStateOf(false)
@@ -43,26 +45,22 @@ class NewPasswordViewModel : ViewModel() {
         _error.value = ""
     }
 
-    fun checkPassword(data: LoginData, navController: NavController) =
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun checkPassword(oldPassword: String, navController: NavController) =
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                when (true) {
+                when {
                     _password1.value.isBlank() -> throw MessengerException("Введите пароль!")
                     _password1.value != _password2.value -> throw MessengerException("Введёные пароли не совпадают!")
                     regBigSymbol.matches(_password1.value) -> throw MessengerException("В пароле должна быть хотя бы одна заглавная буква!")
                     _password1.value.length <= 7 -> throw MessengerException("Длина пароля должна быть 8 символов и больше!")
-                    getDigest("${data.phoneNumber}:$myRealm:${_password1.value}").contentEquals(data.password) -> throw MessengerException(
-                        "Новый пароль не должен совпадать со старым!"
-                    )
+                    _password1.value == oldPassword -> throw MessengerException("Новый пароль не должен совпадать со старым!")
                     else -> {
-                        val newPasswordDigest =
-                            getDigest("${data.phoneNumber}:$myRealm:${_password1.value}")
-                        val changePassword =
-                            ChangePassword(data = data, newPassword = newPasswordDigest)
-                        val flag = Requests.changePassword(changePassword = changePassword)
+                        val newPasswordDigest = getString(getDigest(_password1.value))
+                        val flag = Requests.updatePassword(Password(newPasswordDigest))
                         if (!flag) throw MessengerException("Не удалось сменить пароль, попробуйте ещё раз!")
-                        else withContext(Dispatchers.Main) {
-                            navController.navigate(MainScreens.Chat.createRoute(data = data.copy(password = newPasswordDigest)))
+                        withContext(Dispatchers.Main) {
+                            navController.navigate(MainScreens.Chat.createRoute())
                         }
                     }
                 }
@@ -82,8 +80,9 @@ class NewPasswordViewModel : ViewModel() {
         private fun getDigest(str: String): ByteArray =
             MessageDigest.getInstance(digestAlgorithm).digest(str.toByteArray(Charsets.UTF_8))
 
-        private const val digestAlgorithm = "MD5"
+        @RequiresApi(Build.VERSION_CODES.O)
+        private fun getString(password: ByteArray) = Base64.getEncoder().encodeToString(password)
 
-        private const val myRealm = "RestAPI"
+        private const val digestAlgorithm = "SHA-256"
     }
 }
