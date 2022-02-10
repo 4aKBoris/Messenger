@@ -19,7 +19,7 @@ class RegisterViewModel : ViewModel() {
     private val _progress = mutableStateOf(false)
     private val _error = mutableStateOf("")
     private val _dialogState = mutableStateOf(false)
-    private val _phoneNumber = mutableStateOf("")
+    private val _phoneNumber = mutableStateOf("+7")
     private val _importantError = mutableStateOf(false)
 
     val progress: State<Boolean> = _progress
